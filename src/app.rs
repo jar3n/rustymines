@@ -6,19 +6,51 @@ use color_eyre::Result;
 
 use crate::ui::render;
 
+use std::str::FromStr;
+
+
+pub enum DifficultyLevel {
+    Easy,
+    Medium,
+    Hard
+}
+
+impl FromStr for DifficultyLevel {
+    type Err = ();
+
+    fn from_str(s: &str) -> std::prelude::v1::Result<Self, Self::Err> {
+        match s {
+            "Easy" | "easy" => Ok(DifficultyLevel::Easy),
+            "Medium" | "medium" => Ok(DifficultyLevel::Medium),
+            "Hard" | "hard" => Ok(DifficultyLevel::Hard),
+            _ => Err(()),
+        }
+    }
+}
+
+impl DifficultyLevel {
+    fn to_string(&self) -> &'static str {
+        match self {
+            DifficultyLevel::Easy => "Easy",
+            DifficultyLevel::Medium => "Medium",
+            DifficultyLevel::Hard => "Hard",
+        }
+    }
+}
+
 
 pub struct App {
     should_quit: bool,
-    name: String,
+    difficulty: DifficultyLevel
 }
 
 
 impl App {
 
-    pub fn new(name: String) -> Self {
+    pub fn new() -> Self {
         Self {
             should_quit: false,
-            name: name
+            difficulty: DifficultyLevel::Easy,
         }
 
     }
@@ -28,7 +60,8 @@ impl App {
             terminal.draw(
                 |frame| render(self, frame)
             )?;
-                self.handle_events()?;
+            
+            self.handle_events()?;
         }
         Ok(())
     }
@@ -42,7 +75,13 @@ impl App {
         Ok(())
     }
 
-    pub fn name(&mut self) -> String{
-        self.name.clone()
+    pub fn difficulty(&self) -> &'static str{
+        self.difficulty.to_string()
     }
+
+    // pub fn set_difficulty(&mut self, difficulty: str) -> Result<()> {
+    //     match  {
+
+    //     }
+    // }
 }

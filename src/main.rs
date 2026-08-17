@@ -2,9 +2,13 @@ pub mod app;
 
 pub mod ui;
 
+pub mod minefield;
+
 use std::io;
 
 use app::App;
+
+
 
 
 use color_eyre::Result;
