@@ -10,10 +10,9 @@ each square is either unknown, bomb, flag, or number
 
 
 
-use std::collections::HashSet;
+use rand::distr::Uniform;
 
 use color_eyre::Result;
-use rand::random_iter;
 
 
 #[derive(Clone, Copy)]
@@ -27,28 +26,27 @@ pub struct MineField {
     size: [usize; 2],
     state: Vec<SquareState>,
     num_bombs: u8,
+    area: usize,
 }
 
 impl MineField {
 
-    pub fn new(self: &mut Self, width: usize, height: usize, num_bombs: u8) -> Result<()>{
+    pub fn new(self: &mut Self, width: usize, height: usize, num_bombs: usize) -> Result<()>{
 
         // set the minefield state
         // based on the set up stuff
 
 
         self.size = [width, height];
+        self.area = width*height;
 
-        self.state = vec![SquareState::Safe; (width*height).into()];
+        self.state = vec![SquareState::Safe; self.area.into()];
 
-        let bomb_spots: HashSet<u32> = random_iter().take(num_bombs.into()).collect();
 
         // set the bomb indices
-        for index in 0..self.state.len() {
-            let idx = index as u32;
-            if bomb_spots.contains(&idx) {
-                self.state[index] = SquareState::Bomb;
-            }
+        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), self.area, num_bombs);
+        for index in bomb_spots {
+            self.state[index] = SquareState::Bomb;
         }
         Ok(())
     }

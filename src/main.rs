@@ -32,7 +32,7 @@ fn main() -> Result<()> {
 
 
     // mid 
-    let mut app = App::new(String::from("WOWOWOWOW"));
+    let mut app = App::new();
 
     app.run(&mut terminal)?;
 
