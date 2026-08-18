@@ -28,7 +28,7 @@ impl MineField {
             columns: columns,
             rows: rows,
             state: vec![-1],
-            num_bombs: 0,
+            num_bombs: num_bombs,
             area: 1,
         };
 
