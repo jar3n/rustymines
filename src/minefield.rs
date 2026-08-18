@@ -8,17 +8,13 @@ the board is an array that represents a
 each square is either unknown, bomb, flag, or number
 */
 
-use std::collections::HashSet;
-
-use ratatui::layout::Columns;
-
 
 #[derive(Clone)]
 pub struct MineField {
     columns: usize,
     rows: usize,
     state: Vec<i8>,
-    num_bombs: u8,
+    num_bombs: usize,
     area: usize,
 }
 
@@ -36,13 +32,13 @@ impl MineField {
             area: 1,
         };
 
-        field.area = columns*rows;
+        field.area = field.columns*field.rows;
 
         field.state = vec![0; field.area.into()];
 
 
         // set the bomb indices
-        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, num_bombs);
+        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs);
         for index in bomb_spots {
             field.state[index] = -1;
         }
@@ -60,10 +56,6 @@ impl MineField {
             -1 => true,
             _ => false,
         }
-    }
-
-    fn test_index(self: &Self, index: &usize) -> bool {
-        *index <= self.area-1
     }
 
     fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {
