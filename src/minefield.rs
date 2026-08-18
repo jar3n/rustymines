@@ -17,6 +17,17 @@ pub struct MineField {
     num_bombs: usize,
     area: usize,
 }
+impl Default for MineField {
+    fn default() -> Self {
+        Self {
+            columns: 3,
+            rows: 3,
+            state: vec![0; 9],
+            num_bombs: 0,
+            area: 9,
+        }
+    }
+}
 
 impl MineField {
 
@@ -223,7 +234,7 @@ mod tests {
 
     #[test]
     fn test_get_neighbors_center() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         // index with 8 neighbors
         let coords = TestNeighborIndexes::default().center_index;
@@ -244,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_top_left_corner_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().corner_indexes[0];
 
@@ -259,7 +270,7 @@ mod tests {
 
        #[test]
     fn test_top_right_corner_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().corner_indexes[1];
 
@@ -274,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_bottom_left_corner_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().corner_indexes[2];
 
@@ -289,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_bottom_right_corner_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().corner_indexes[3];
 
@@ -304,7 +315,7 @@ mod tests {
 
     #[test]
     fn test_top_side_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().side_indexes[0];
 
@@ -319,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_left_side_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().side_indexes[1];
 
@@ -334,7 +345,7 @@ mod tests {
 
     #[test]
     fn test_right_side_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().side_indexes[2];
 
@@ -349,7 +360,7 @@ mod tests {
 
     #[test]
     fn test_bottom_side_neighbors() {
-        let field = MineField::new(3, 3, 1);
+        let field = MineField::default();
 
         let coords = TestNeighborIndexes::default().side_indexes[3];
 
