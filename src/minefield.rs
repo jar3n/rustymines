@@ -181,7 +181,7 @@ impl MineField {
 mod tests {
     use super::*;
 
-
+    // test set up and helper functions
     fn assert_neighbors(act_neighbors: &Vec<usize>, exp_neighbors: &Vec<usize>) {
 
         println!("Number of Actual Neighbors: {}",act_neighbors.len());
@@ -228,10 +228,28 @@ mod tests {
         }
     }
 
+    fn set_bomb_location(row:usize, column:usize) -> MineField {
+        let mut field = MineField::default();
 
+        let state_index = (row * field.columns) + column;
 
+        field.state[state_index] = -1;
+
+        field.num_bombs = 1;
+
+        field
+    }
+
+    fn add_bomb_location(field:&mut MineField, row:usize, column:usize) {
+        
+        let state_index = (row * field.columns) + column;
+
+        field.state[state_index] = -1;
+
+        field.num_bombs += 1;
+    }
    
-
+    // tests
     #[test]
     fn test_get_neighbors_center() {
         let field = MineField::default();
@@ -371,6 +389,78 @@ mod tests {
         println!("Testing Bottom Side Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
+    }
+
+
+    #[test]
+    fn test_check_square_bomb() {
+        let field = set_bomb_location(1, 1);
+
+        let is_bomb = field.check_square(1,1);
+
+        assert!(is_bomb);
+    }
+
+    #[test]
+    fn test_check_square_no_bomb() {
+        let field = set_bomb_location(1,1);
+        let is_bomb = field.check_square(0,0);
+
+        assert!(!is_bomb);
+    }
+
+    #[test]
+    fn test_check_neighbors_center_one() {
+        let field = set_bomb_location(1, 1);
+
+        // bomb in center means all non bomb squares
+        // have one bomb neighbor
+        // since default is 3x3
+        for row in 0..field.rows {
+            for column in 0..field.columns {
+                if row == 1 && column ==1 {
+                    continue;
+                }
+
+                let bomb_count = field.check_neighbors(row, column);
+                
+                assert_eq!(bomb_count, 1);
+
+            }
+        }
+    }
+
+    #[test]
+    fn test_check_neighbors_two_bombs(){
+        let mut field = set_bomb_location(0, 1);
+
+        add_bomb_location(&mut field, 2, 1);
+
+
+        for row in 0..field.rows {
+            for column in 0..field.columns {
+                let coords: (usize, usize) = (row, column);
+
+                let two_bomb_neighbors: Vec<(usize, usize)> = vec![
+                    (1,0),
+                    (1,1),
+                    (1,2),
+                ];
+
+                let bomb_count = field.check_neighbors(coords.0, coords.1);
+
+                if two_bomb_neighbors.contains(&coords) {
+                    assert_eq!(bomb_count,2);
+                } else if field.check_square(coords.0, coords.1) {
+                    // ignore if its a bomb square
+                    continue;
+                } 
+                else {
+                    assert_eq!(bomb_count, 1);
+                }
+            }
+        }
+
     }
 
 }
