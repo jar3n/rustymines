@@ -112,6 +112,21 @@ impl MineField {
                 neighbors.push(square_index - 1);
                 neighbors.push(square_index - self.columns - 1);
             }
+        } else if left_border.contains(&square_index) {
+            // just left border not a corner
+            neighbors.push(square_index + 1);
+            neighbors.push(square_index - self.columns);
+            neighbors.push(square_index - self.columns + 1);
+            neighbors.push(square_index + self.columns);
+            neighbors.push(square_index + self.columns + 1);
+
+        } else if right_border.contains(&square_index) {
+            // just right border not a corner
+            neighbors.push(square_index - self.columns);
+            neighbors.push(square_index - self.columns -1);
+            neighbors.push(square_index + self.columns);
+            neighbors.push(square_index - 1);
+            neighbors.push(square_index + self.columns - 1);
         } else {
             // not an edge case
             // add all the neighbors
@@ -155,12 +170,196 @@ impl MineField {
 mod tests {
     use super::*;
 
+
+    fn assert_neighbors(act_neighbors: &Vec<usize>, exp_neighbors: &Vec<usize>) {
+
+        println!("Number of Actual Neighbors: {}",act_neighbors.len());
+        println!("Number of Expected Neighbors: {}",exp_neighbors.len());
+
+        println!("Actual Neighbors: {:?}", act_neighbors);
+        println!("Expected Neighbors: {:?}", exp_neighbors);
+
+
+        // compare number of neighbors
+        assert_eq!(act_neighbors.len(), exp_neighbors.len());
+
+        for exp_neighbor in exp_neighbors {
+            assert!(act_neighbors.contains(exp_neighbor));
+        }
+    }
+
+    fn print_separator() {
+        println!("----------------------");
+    }
+
+    struct TestNeighborIndexes {
+        center_index: (usize, usize),
+        corner_indexes: Vec<(usize,usize)>,
+        side_indexes: Vec<(usize,usize)>,
+    }
+    impl Default for TestNeighborIndexes {
+        fn default() -> Self {
+            Self {
+                center_index: (1,1),
+                corner_indexes:  vec![
+                    (0,0),
+                    (0,2),
+                    (2,0),
+                    (2,2)
+                ],
+                side_indexes: vec![
+                    (0,1),
+                    (1,0),
+                    (1,2),
+                    (2,1),
+                ],
+            }
+        }
+    }
+
+
+
+   
+
     #[test]
-    fn test_test_index() {
+    fn test_get_neighbors_center() {
         let field = MineField::new(3, 3, 1);
 
-        // valid index
+        // index with 8 neighbors
+        let coords = TestNeighborIndexes::default().center_index;
+        
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![0,1,2,3,5,6,7,8];
+
+
+        println!("Testing Center Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
 
 
     }
+
+
+    #[test]
+    fn test_top_left_corner_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().corner_indexes[0];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![1,3,4];
+
+        println!("Testing Top Left Corner Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+       #[test]
+    fn test_top_right_corner_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().corner_indexes[1];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![1,4,5];
+
+        println!("Testing Top Right Corner Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+    #[test]
+    fn test_bottom_left_corner_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().corner_indexes[2];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![3,4,7];
+
+        println!("Testing Bottom Left Corner Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+    #[test]
+    fn test_bottom_right_corner_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().corner_indexes[3];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![4,5,7];
+
+        println!("Testing Bottom Right Corner Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+    #[test]
+    fn test_top_side_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().side_indexes[0];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![0,2,3,4,5];
+
+        println!("Testing Top Side Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+    #[test]
+    fn test_left_side_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().side_indexes[1];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![0,1,4,6,7];
+
+        println!("Testing Right Side Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+    #[test]
+    fn test_right_side_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().side_indexes[2];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![1,2,4,7,8];
+
+        println!("Testing Right Side Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
+    #[test]
+    fn test_bottom_side_neighbors() {
+        let field = MineField::new(3, 3, 1);
+
+        let coords = TestNeighborIndexes::default().side_indexes[3];
+
+        // center index testing
+        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let exp_neighbors: Vec<usize> = vec![3,4,5,6,8];
+
+        println!("Testing Bottom Side Index, {:?}", coords);
+        assert_neighbors(&act_neighbors, &exp_neighbors);
+        print_separator();
+    }
+
 }
