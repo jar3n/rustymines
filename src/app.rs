@@ -4,7 +4,10 @@ use crossterm::event;
 
 use color_eyre::Result;
 
-use crate::ui::render;
+use crate::ui::{
+    render,
+    Views
+};
 
 use std::str::FromStr;
 
@@ -41,7 +44,8 @@ impl DifficultyLevel {
 
 pub struct App {
     should_quit: bool,
-    difficulty: DifficultyLevel
+    difficulty: DifficultyLevel,
+    state: Views,
 }
 
 
@@ -51,6 +55,7 @@ impl App {
         Self {
             should_quit: false,
             difficulty: DifficultyLevel::Easy,
+            state: Views::Start,
         }
 
     }
@@ -77,6 +82,10 @@ impl App {
 
     pub fn difficulty(&self) -> &'static str{
         self.difficulty.to_string()
+    }
+
+    pub fn state(&self) -> &Views {
+        &self.state
     }
 
     // pub fn set_difficulty(&mut self, difficulty: str) -> Result<()> {
