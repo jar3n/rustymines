@@ -8,12 +8,14 @@ the board is an array that represents a
 each square is either unknown, bomb, flag, or number
 */
 
+use std::option::Option;
+
 
 #[derive(Clone)]
 pub struct MineField {
     columns: usize,
     rows: usize,
-    state: Vec<i8>,
+    state: Vec<Option<i8>>,
     num_bombs: usize,
     area: usize,
 }
@@ -22,7 +24,7 @@ impl Default for MineField {
         Self {
             columns: 3,
             rows: 3,
-            state: vec![0; 9],
+            state: vec![None; 9],
             num_bombs: 0,
             area: 9,
         }
@@ -38,20 +40,20 @@ impl MineField {
         let mut field = MineField {
             columns: columns,
             rows: rows,
-            state: vec![-1],
+            state: vec![None],
             num_bombs: num_bombs,
             area: 1,
         };
 
         field.area = field.columns*field.rows;
 
-        field.state = vec![0; field.area.into()];
+        field.state = vec![None; field.area.into()];
 
 
         // set the bomb indices
         let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs);
         for index in bomb_spots {
-            field.state[index] = -1;
+            field.state[index] = Some(-1);
         }
 
         field
@@ -64,8 +66,8 @@ impl MineField {
         let index:usize = (row_index * self.columns) + col_index;
         
         match self.state[index] {
-            -1 => true,
-            _ => false,
+            Some(-1) => true,
+            None | Some(_) => false,
         }
     }
 
@@ -157,23 +159,32 @@ impl MineField {
 
     }
 
-    pub fn check_neighbors(self: &Self, row_index: usize, col_index: usize) -> i8 {
+    pub fn check_neighbors(self: &mut Self, row_index: usize, col_index: usize) -> i8 {
 
         // count the number of bombs adjacent to the current square
 
-        let neighbors = self.get_neighbors(row_index, col_index);
+        let index = (row_index * self.columns) + col_index;
 
-        let mut count = 0;
+        match self.state[index] {
+            Some(count) => count,
+            None => {
+                        let neighbors = self.get_neighbors(row_index, col_index);
 
-        for neighbor in neighbors {
-            let neighbor_val = self.state[neighbor];
-            if neighbor_val == -1 {
-                count += 1;
-            }
-        }
-        
-        count
+                        let mut count = 0;
 
+                        for neighbor in neighbors {
+                            let neighbor_val = self.state[neighbor];
+                            if neighbor_val == Some(-1){
+                                count += 1;
+                            }
+                        }
+
+                        // update the square value
+                        self.state[index] = Some(count);
+
+                        count
+                    }
+                }
     }
 }
 
@@ -233,7 +244,7 @@ mod tests {
 
         let state_index = (row * field.columns) + column;
 
-        field.state[state_index] = -1;
+        field.state[state_index] = Some(-1);
 
         field.num_bombs = 1;
 
@@ -244,7 +255,7 @@ mod tests {
         
         let state_index = (row * field.columns) + column;
 
-        field.state[state_index] = -1;
+        field.state[state_index] = Some(-1);
 
         field.num_bombs += 1;
     }
@@ -411,7 +422,7 @@ mod tests {
 
     #[test]
     fn test_check_neighbors_center_one() {
-        let field = set_bomb_location(1, 1);
+        let mut field = set_bomb_location(1, 1);
 
         // bomb in center means all non bomb squares
         // have one bomb neighbor
