@@ -193,7 +193,11 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 
     frame.render_widget(&bottom_blank_space, selection_vertical_layout[selection_vertical_layout.len()-1]);
 
-    
+    frame.render_widget(Block::new().borders(Borders::LEFT | Borders::RIGHT).style(Green), selection_vertical_layout[1]);
+    frame.render_widget(Block::new().borders(Borders::LEFT | Borders::RIGHT).style(Green), selection_vertical_layout[3]);
+
+    frame.render_widget(Block::new().borders(Borders::LEFT).border_style(Green), selection_horizontal_layout[0]);
+    frame.render_widget(Block::new().borders(Borders::RIGHT).border_style(Green), selection_horizontal_layout[selection_horizontal_layout.len()-1]);
     
     frame.render_widget(level_select_text(DifficultyLevel::Easy, app.difficulty()), selection_horizontal_layout[1]);
     frame.render_widget(level_select_text(DifficultyLevel::Medium, app.difficulty()), selection_horizontal_layout[3]);
