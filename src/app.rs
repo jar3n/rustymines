@@ -11,7 +11,7 @@ use crate::ui::{
 
 use std::str::FromStr;
 
-
+#[derive(PartialEq, Clone, Copy)]
 pub enum DifficultyLevel {
     Easy,
     Medium,
@@ -31,12 +31,12 @@ impl FromStr for DifficultyLevel {
     }
 }
 
-impl DifficultyLevel {
-    fn to_string(&self) -> &'static str {
+impl ToString for DifficultyLevel {
+    fn to_string(self: &DifficultyLevel) -> String {
         match self {
-            DifficultyLevel::Easy => "Easy",
-            DifficultyLevel::Medium => "Medium",
-            DifficultyLevel::Hard => "Hard",
+            DifficultyLevel::Easy => String::from("Easy"),
+            DifficultyLevel::Medium => String::from("Medium"),
+            DifficultyLevel::Hard => String::from("Hard"),
         }
     }
 }
@@ -80,8 +80,8 @@ impl App {
         Ok(())
     }
 
-    pub fn difficulty(&self) -> &'static str{
-        self.difficulty.to_string()
+    pub fn difficulty(&self) -> DifficultyLevel{
+        self.difficulty
     }
 
     pub fn state(&self) -> &Views {
