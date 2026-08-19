@@ -9,7 +9,7 @@ use crate::app::{
 use ratatui::{
     layout::{
         self, Constraint, Direction::Vertical, Layout, Rect
-    }, style::{Color, Style}, symbols, widgets::{
+    }, style::{Color, Style, Stylize}, symbols, widgets::{
         Block, BorderType, Borders, Paragraph
     }
 };
@@ -39,41 +39,109 @@ fn base_layout(frame: &mut ratatui::Frame) -> Rc<[Rect]>{
             .split(frame.area())
 }
 
-pub fn widget_borders() -> Block<'static> {
-    Block::new()
-        .borders(Borders::ALL)
-        .border_style(
-            Style::new()
-            .green()
-            
-        )
-        .border_type(
-            BorderType::Rounded
-        )
-}
-
 // render start menu
 pub fn render_start(frame: &mut ratatui::Frame) {
     let base = base_layout(frame);
-
+ 
     let title_layout = Layout::default()
                                     .direction(Vertical)
                                     .constraints(vec![
                                         Constraint::Fill(1),
                                         Constraint::Fill(1),
                                         Constraint::Fill(1),
+                                        Constraint::Fill(1),
+                                        Constraint::Fill(1),
                                     ])
                                     .split(base[0]);
 
-    let top_text = Paragraph::new("Rusty Mines")
-                                        .centered()
-                                        .block(widget_borders());
+    let top_blank_space = Block::new()
+                                        .borders(Borders::TOP | Borders::LEFT | Borders::RIGHT)
+                                        .border_style(
+                                            Style::new()
+                                            .green()
+                                        )
+                                        .border_type(
+                                            BorderType::Rounded
+                                        );
 
-    frame.render_widget(top_text, title_layout[1]);
+    frame.render_widget(top_blank_space, title_layout[0]);
+
+    let title_text = Paragraph::new(
+                                            "Welcome to Rusty Mines"
+                                            .bold()
+                                            .green()
+                                        )
+                                        .centered()
+                                        .block(
+                                            Block::new()
+                                                .borders(Borders::LEFT | Borders::RIGHT)
+                                                .border_style(
+                                                    Style::new()
+                                                    .green()
+                                                    
+                                                )
+                                                .border_type(
+                                                    BorderType::Rounded
+                                                )
+                                        );
+    
+
+    frame.render_widget(title_text, title_layout[1]);
+
+    let instructions_text = Paragraph::new(
+                                                            "Select a difficulty using the Left and Right Arrow Keys"
+                                                            .green()
+                                                            .dim()
+                                                        )
+                                                        .centered()
+                                                        .block(
+                                                            Block::new()
+                                                            .borders(Borders::LEFT | Borders::RIGHT)
+                                                            .green()
+                                                        );
+
+    frame.render_widget(instructions_text, title_layout[2]);
+
+    let start_game_instructions = Paragraph::new(
+                                                                    "Press Enter and Start Sweeping!"
+                                                                    .green()
+                                                                    .dim()                                                            
+                                                                )
+                                                                .centered()
+                                                                .block(
+                                                                    Block::new()
+                                                                    .borders(Borders::LEFT | Borders::RIGHT)
+                                                                    .green()
+                                                                );
+    
+    frame.render_widget(start_game_instructions, title_layout[3]);
+
+    let bottom_blank_space = Block::new()
+                                        .borders(Borders::BOTTOM | Borders::LEFT | Borders::RIGHT)
+                                        .border_style(
+                                            Style::new()
+                                            .green()
+                                        )
+                                        .border_type(
+                                            BorderType::Rounded
+                                        );
+
+    frame.render_widget(bottom_blank_space, title_layout[title_layout.len()-1]);
 
     let bottom_text = Paragraph::new("start menu options go here")
                                         .centered()
-                                        .block(widget_borders());
+                                        .block(
+                                            Block::new()
+                                                .borders(Borders::ALL)
+                                                .border_style(
+                                                    Style::new()
+                                                    .green()
+                                                    
+                                                )
+                                                .border_type(
+                                                    BorderType::Rounded
+                                                )
+                                            );
 
     frame.render_widget(bottom_text, base[1]);
 }
