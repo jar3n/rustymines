@@ -8,9 +8,21 @@ use crate::app::{
 
 use ratatui::{
     layout::{
-        self, Constraint, Direction::Vertical, Layout, Rect
-    }, style::{Color, Style, Stylize}, symbols, widgets::{
-        Block, BorderType, Borders, Paragraph
+        self, 
+        Constraint, 
+        Direction::Vertical, 
+        Layout, 
+        Rect
+    }, 
+    style::{
+        Style, 
+        Stylize
+    }, 
+    widgets::{
+        Block, 
+        BorderType, 
+        Borders, 
+        Paragraph
     }
 };
 
