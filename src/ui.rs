@@ -1,4 +1,5 @@
 
+
 use std::rc::Rc;
 
 use crate::app::{
@@ -8,22 +9,14 @@ use crate::app::{
 
 use ratatui::{
     layout::{
-        self, 
-        Constraint, 
-        Direction, 
-        Layout, 
-        Rect
-    }, 
-    style::{
+        self, Constraint, Direction, Layout, Rect
+    }, style::{
         Color::Green, Style, Stylize
-    }, 
-    widgets::{
-        Block, 
-        BorderType, 
-        Borders, 
-        Paragraph
+    }, widgets::{
+        Block, BorderType, Borders, List, ListState, Paragraph
     }
 };
+use strum::IntoEnumIterator;
 
 
 
@@ -48,22 +41,6 @@ fn base_layout(frame: &mut ratatui::Frame) -> Rc<[Rect]>{
                 Constraint::Percentage(33)
             ])
             .split(frame.area())
-}
-
-fn level_select_text(level: DifficultyLevel, selected: DifficultyLevel) -> Paragraph<'static> {
-    let text_style = match selected == level {
-        true => Style::new().bg(Green).black(),
-        false => Style::new().green()
-    };
-
-
-    Paragraph::new(
-        level.to_string()
-    )
-    .style(
-        text_style
-    )
-    .centered()
 }
 
 // render start menu
@@ -155,53 +132,36 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 
     frame.render_widget(&bottom_blank_space, title_layout[title_layout.len()-1]);
 
-
-    // for temporary implementation
-    // put in the selection as static code
-    // later condense and make it
-    // work with changing selections
-    // also clean up
-    // the layouts 
-    // because there are a lot of empty fills
-    // in there
-
-    let selection_vertical_layout = Layout::default()
-                                             .constraints(vec![
-                                                Constraint::Fill(1),
-                                                Constraint::Fill(1),
-                                                Constraint::Fill(1),
-                                                Constraint::Fill(1),
-                                                Constraint::Fill(1),
-                                                
-                                             ])
-                                             .split(base[1]);
+    let mut items: Vec<&'static str> = vec![];
     
-    let selection_horizontal_layout = Layout::default()
-                                                    .direction(Direction::Horizontal)
-                                                    .constraints(vec![
-                                                        Constraint::Fill(3),
-                                                        Constraint::Fill(1),
-                                                        Constraint::Fill(3),
-                                                        Constraint::Fill(1),
-                                                        Constraint::Fill(3),
-                                                        Constraint::Fill(1),
-                                                        Constraint::Fill(3),
-                                                    ])
-                                                    .split(selection_vertical_layout[2]);
+    for level in DifficultyLevel::iter() {
+        items.push(level.into());
+    };
 
-    frame.render_widget(&top_blank_space, selection_vertical_layout[0]);
+    let items_clone = items.clone();
 
-    frame.render_widget(&bottom_blank_space, selection_vertical_layout[selection_vertical_layout.len()-1]);
+    let level_selection = List::new(items)
+                                            .block(Block::new()
+                                                    .borders(Borders::ALL)
+                                                        .green()
+                                                        .border_type(BorderType::Rounded)
+                                                    )
+                                            .highlight_style( 
+                                                Style::new().bg(Green).black()
+                                            )
+                                            .style(
+                                                Green,
+                                            );
+                                            
+    let selected_difficulty_str: &'static str = app.difficulty().into();
+    let selected_difficulty_index = items_clone.iter().position(|r| *r == selected_difficulty_str);                                        
 
-    frame.render_widget(Block::new().borders(Borders::LEFT | Borders::RIGHT).style(Green), selection_vertical_layout[1]);
-    frame.render_widget(Block::new().borders(Borders::LEFT | Borders::RIGHT).style(Green), selection_vertical_layout[3]);
-
-    frame.render_widget(Block::new().borders(Borders::LEFT).border_style(Green), selection_horizontal_layout[0]);
-    frame.render_widget(Block::new().borders(Borders::RIGHT).border_style(Green), selection_horizontal_layout[selection_horizontal_layout.len()-1]);
+    let mut state = ListState::default();
+    state.select(selected_difficulty_index);
     
-    frame.render_widget(level_select_text(DifficultyLevel::Easy, app.difficulty()), selection_horizontal_layout[1]);
-    frame.render_widget(level_select_text(DifficultyLevel::Medium, app.difficulty()), selection_horizontal_layout[3]);
-    frame.render_widget(level_select_text(DifficultyLevel::Hard, app.difficulty()), selection_horizontal_layout[5]);
+
+    frame.render_stateful_widget(level_selection, base[1], &mut state);
+
 
 
 }

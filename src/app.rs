@@ -3,6 +3,8 @@ use crossterm::event;
 
 
 use color_eyre::Result;
+use strum::{EnumIter, IntoStaticStr};
+
 
 use crate::ui::{
     render,
@@ -11,11 +13,12 @@ use crate::ui::{
 
 use std::str::FromStr;
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, EnumIter, IntoStaticStr)]
 pub enum DifficultyLevel {
     Easy,
     Medium,
-    Hard
+    Hard,
+    Extreme
 }
 
 impl FromStr for DifficultyLevel {
@@ -26,20 +29,23 @@ impl FromStr for DifficultyLevel {
             "Easy" | "easy" => Ok(DifficultyLevel::Easy),
             "Medium" | "medium" => Ok(DifficultyLevel::Medium),
             "Hard" | "hard" => Ok(DifficultyLevel::Hard),
+            "Extreme" | "extreme" => Ok(DifficultyLevel::Extreme),
             _ => Err(()),
         }
     }
 }
 
 impl ToString for DifficultyLevel {
-    fn to_string(self: &DifficultyLevel) -> String {
+    fn to_string(&self) -> String {
         match self {
             DifficultyLevel::Easy => String::from("Easy"),
             DifficultyLevel::Medium => String::from("Medium"),
             DifficultyLevel::Hard => String::from("Hard"),
+            DifficultyLevel::Extreme => String::from("Extreme"),
         }
     }
 }
+
 
 
 pub struct App {
@@ -54,7 +60,7 @@ impl App {
     pub fn new() -> Self {
         Self {
             should_quit: false,
-            difficulty: DifficultyLevel::Easy,
+            difficulty: DifficultyLevel::Hard,
             state: Views::Start,
         }
 
