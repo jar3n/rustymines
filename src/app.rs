@@ -60,7 +60,7 @@ impl App {
     pub fn new() -> Self {
         Self {
             should_quit: false,
-            difficulty: DifficultyLevel::Hard,
+            difficulty: DifficultyLevel::Easy,
             state: Views::Start,
         }
 

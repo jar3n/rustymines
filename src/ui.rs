@@ -12,7 +12,7 @@ use ratatui::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
         Color::Green, Style, Stylize
-    }, widgets::{
+    }, text::Line, widgets::{
         Block, BorderType, Borders, List, ListState, Paragraph
     }
 };
@@ -93,7 +93,7 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
     frame.render_widget(title_text, title_layout[1]);
 
     let instructions_text = Paragraph::new(
-                                                            "Select a difficulty using the Left and Right Arrow Keys"
+                                                            "Select a difficulty using Up and Down Arrow Keys or 'W' and 'S'"
                                                             .green()
                                                             .dim()
                                                         )
@@ -132,10 +132,11 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 
     frame.render_widget(&bottom_blank_space, title_layout[title_layout.len()-1]);
 
-    let mut items: Vec<&'static str> = vec![];
+    let mut items: Vec<Line> = vec![];
     
     for level in DifficultyLevel::iter() {
-        items.push(level.into());
+        let level_str: &'static str = level.into();
+        items.push(Line::from(level_str).centered());
     };
 
     let items_clone = items.clone();
@@ -154,7 +155,7 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
                                             );
                                             
     let selected_difficulty_str: &'static str = app.difficulty().into();
-    let selected_difficulty_index = items_clone.iter().position(|r| *r == selected_difficulty_str);                                        
+    let selected_difficulty_index = items_clone.iter().position(|r| *r.to_string() == *selected_difficulty_str);                                        
 
     let mut state = ListState::default();
     state.select(selected_difficulty_index);
