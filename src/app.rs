@@ -1,14 +1,18 @@
 use ratatui::backend::CrosstermBackend;
+
 use crossterm::event;
 
-
-use color_eyre::Result;
+use color_eyre::{Result};
 use strum::{EnumIter, IntoStaticStr};
-
 
 use crate::ui::{
     render,
     Views
+};
+
+use crate::event::{
+    handle_game_events,
+    handle_start_events
 };
 
 use std::str::FromStr;
@@ -24,7 +28,7 @@ pub enum DifficultyLevel {
 impl FromStr for DifficultyLevel {
     type Err = ();
 
-    fn from_str(s: &str) -> std::prelude::v1::Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<DifficultyLevel, ()> {
         match s {
             "Easy" | "easy" => Ok(DifficultyLevel::Easy),
             "Medium" | "medium" => Ok(DifficultyLevel::Medium),
@@ -80,23 +84,45 @@ impl App {
 
 
     fn handle_events(&mut self) -> Result<()>{
-        if event::read()?.is_key_press() {
-            self.should_quit = true;
+        let event = event::read()?;
+
+        if event.is_key_press() {
+
+            let key_event = event.as_key_event();
+
+            match key_event {
+                None => {},
+                Some(key_event) => {
+                    match &self.state {
+                        Views::Start => handle_start_events(self, key_event),
+                        Views::InGame => handle_game_events(self, key_event)
+                    }
+                }
+            };
+            
         }
         Ok(())
     }
 
-    pub fn difficulty(&self) -> DifficultyLevel{
-        self.difficulty
+    pub fn difficulty(&self) -> &DifficultyLevel{
+        &self.difficulty
     }
 
     pub fn state(&self) -> &Views {
         &self.state
     }
 
-    // pub fn set_difficulty(&mut self, difficulty: str) -> Result<()> {
-    //     match  {
+    pub fn set_difficulty(&mut self, difficulty: &DifficultyLevel) -> Result<()> {
+        self.difficulty = *difficulty;
+        Ok(())
+    }
 
-    //     }
-    // }
+    pub fn quit(&mut self) {
+        self.should_quit = true;
+    }
+
+    pub fn enter_game(&mut self) {
+        self.state = Views::InGame;
+    }
+
 }

@@ -4,6 +4,8 @@ pub mod ui;
 
 pub mod minefield;
 
+pub mod event;
+
 use std::io;
 
 use app::App;
