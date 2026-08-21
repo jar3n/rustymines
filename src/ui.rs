@@ -1,6 +1,6 @@
 
 
-use std::{fmt::{Debug, format}, rc::Rc};
+use std::rc::Rc;
 
 use crate::app::{
     App,
@@ -178,17 +178,17 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 }
 
 
-fn tile(row: usize, column: usize, revealed: bool, tiletype: i8) ->Rectangle {
+fn tile(column: f64, row: f64, revealed: bool, tiletype: i8) ->Rectangle {
     // todo 
     // add size adjustment 
     // and translate row column coordinates
     // to the center of the tile
 
     Rectangle { 
-        x: row as f64, 
-        y: column as f64, 
-        width: 50.0, 
-        height: 50.0, 
+        x: column, 
+        y: row, 
+        width: 0.01, 
+        height: 0.1, 
         color: if revealed {
             match tiletype {
                 -1 => Red,
@@ -206,24 +206,50 @@ fn tile(row: usize, column: usize, revealed: bool, tiletype: i8) ->Rectangle {
 pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let base = base_layout(frame);
 
+    let board_layout = Layout::default()
+                                        .direction(Direction::Horizontal)
+                                        .constraints(
+                                            vec!{
+                                                Constraint::Fill(1),
+                                                Constraint::Fill(1),
+                                                Constraint::Fill(1)
+                                            }
+                                        )
+                                        .split(base[0]);
+
+
+    let rows = app.field().unwrap().rows() as f64;
+    let columns = app.field().unwrap().columns() as f64;
+
     // render the board in the top
     // temporary just render one tile
     let board = Canvas::default()
-                                        .x_bounds([-180.0, 180.0])
-                                        .y_bounds([-90.0, 90.0])
+                                        .x_bounds([0.0, rows])
+                                        .y_bounds([0.0, columns])
                                         .marker(ratatui::symbols::Marker::Bar)
                                         .paint(|ctx| {
-                                            ctx.draw(&tile(0, 0, false, 0));
+                                            ctx.draw(&tile(0.0, 0.0, false, 0));
                                         })
                                         .block(Block::new()
-                                                .borders(Borders::ALL)
+                                                .borders(Borders::TOP | Borders::BOTTOM)
                                                 .border_type(BorderType::Rounded)
                                                 .green()
-                                                .title(format!("Level: {:?}, Size: {} by {}", app.difficulty(), app.field().unwrap().columns(), app.field().unwrap().rows()))
                                                 );
 
-    frame.render_widget(board, base[0]);
+    frame.render_widget(board, board_layout[1]);
 
+    frame.render_widget(Block::new()
+                                        .green()
+                                        .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
+                                        .border_type(BorderType::Rounded)
+                                        .title(format!("Level: {:?}, Size: {} by {}", app.difficulty(), app.field().unwrap().columns(), app.field().unwrap().rows())),
+                         board_layout[0]);
+
+    frame.render_widget(Block::new()
+                                        .green()
+                                        .borders(Borders::RIGHT | Borders::TOP | Borders::BOTTOM)
+                                        .border_type(BorderType::Rounded),
+                         board_layout[2]);
 
     // render the instructions in the bottom
 
