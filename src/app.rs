@@ -5,6 +5,7 @@ use crossterm::event;
 use color_eyre::{Result};
 use strum::{EnumIter, IntoStaticStr};
 
+use crate::minefield::MineField;
 use crate::ui::{
     render,
     Views
@@ -17,7 +18,7 @@ use crate::event::{
 
 use std::str::FromStr;
 
-#[derive(PartialEq, Clone, Copy, EnumIter, IntoStaticStr)]
+#[derive(PartialEq, Clone, Copy, EnumIter, IntoStaticStr, Debug)]
 pub enum DifficultyLevel {
     Easy,
     Medium,
@@ -56,6 +57,7 @@ pub struct App {
     should_quit: bool,
     difficulty: DifficultyLevel,
     state: Views,
+    field: Option<MineField>
 }
 
 
@@ -66,6 +68,7 @@ impl App {
             should_quit: false,
             difficulty: DifficultyLevel::Easy,
             state: Views::Start,
+            field: None
         }
 
     }
@@ -122,7 +125,22 @@ impl App {
     }
 
     pub fn enter_game(&mut self) {
+        // set the view and make the 
+        // minefield based on the difficulty
+        
         self.state = Views::InGame;
+
+        match self.difficulty {
+            DifficultyLevel::Easy => self.field = Some(MineField::new(5, 5, 3)),
+            DifficultyLevel::Medium => self.field = Some(MineField::new(7, 7, 14)),
+            DifficultyLevel::Hard => self.field = Some(MineField::new(9, 9, 27)),
+            DifficultyLevel::Extreme => self.field = Some(MineField::new(10, 10, 40)),
+        }
+
+    }
+
+    pub fn field(self: &Self) -> Option<MineField> {
+        self.field.clone()
     }
 
 }

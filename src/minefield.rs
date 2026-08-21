@@ -186,6 +186,16 @@ impl MineField {
                     }
                 }
     }
+
+
+
+    pub fn rows(self: &Self) -> usize {
+        self.rows
+    }
+
+    pub fn columns(self: &Self) -> usize {
+        self.columns
+    }
 }
 
 #[cfg(test)]

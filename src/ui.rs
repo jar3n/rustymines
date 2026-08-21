@@ -1,6 +1,6 @@
 
 
-use std::rc::Rc;
+use std::{fmt::{Debug, format}, rc::Rc};
 
 use crate::app::{
     App,
@@ -11,9 +11,19 @@ use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::Green, Style, Stylize
+        Color::{Green, White, Red, Gray, Yellow}, Style, Stylize
     }, text::Line, widgets::{
-        Block, BorderType, Borders, List, ListState, Paragraph
+        Block, 
+        BorderType, 
+        Borders, 
+        List, 
+        ListState, 
+        Paragraph,
+        canvas::{
+            Canvas,
+            Rectangle,
+        }
+
     }
 };
 use strum::IntoEnumIterator;
@@ -30,7 +40,7 @@ pub enum Views {
 pub fn render(app:&mut App, frame: &mut ratatui::Frame) {
         match app.state() {
             Views::Start => render_start(frame, app),
-            Views::InGame => render_game(frame),
+            Views::InGame => render_game(frame, app),
         };
 }
 
@@ -167,13 +177,90 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 
 }
 
+
+fn tile(row: usize, column: usize, revealed: bool, tiletype: i8) ->Rectangle {
+    // todo 
+    // add size adjustment 
+    // and translate row column coordinates
+    // to the center of the tile
+
+    Rectangle { 
+        x: row as f64, 
+        y: column as f64, 
+        width: 50.0, 
+        height: 50.0, 
+        color: if revealed {
+            match tiletype {
+                -1 => Red,
+                0 => Gray,
+                _ => Yellow,
+
+            }
+        } else {
+            White
+        }
+    }
+}
+
 // render in game menu
-pub fn render_game(frame: &mut ratatui::Frame) {
+pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let base = base_layout(frame);
 
-    let text = Paragraph::new("game with paragraph");
+    // render the board in the top
+    // temporary just render one tile
+    let board = Canvas::default()
+                                        .x_bounds([-180.0, 180.0])
+                                        .y_bounds([-90.0, 90.0])
+                                        .marker(ratatui::symbols::Marker::Bar)
+                                        .paint(|ctx| {
+                                            ctx.draw(&tile(0, 0, false, 0));
+                                        })
+                                        .block(Block::new()
+                                                .borders(Borders::ALL)
+                                                .border_type(BorderType::Rounded)
+                                                .green()
+                                                .title(format!("Level: {:?}, Size: {} by {}", app.difficulty(), app.field().unwrap().columns(), app.field().unwrap().rows()))
+                                                );
 
-    frame.render_widget(text, base[0]);
+    frame.render_widget(board, base[0]);
+
+
+    // render the instructions in the bottom
+
+    let instructions_layout = Layout::default()
+                                                .constraints(vec![
+                                                    Constraint::Fill(1),
+                                                    Constraint::Fill(1),
+                                                    Constraint::Fill(1)
+                                                ])
+                                                .split(base[1]);
+
+    let instructions_pt1 = Paragraph::new("Navigate the board using WASD")
+                                                            .block(Block::new()
+                                                                          .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT)
+                                                                          .border_type(BorderType::Rounded)
+                                                                          .green()      
+                                                        );
+    let instructions_pt2 = Paragraph::new("Flag a tile with F")
+                                                            .block(Block::new()
+                                                                          .borders(Borders::LEFT | Borders::RIGHT)
+                                                                          .border_type(BorderType::Rounded)
+                                                                          .green()      
+                                                        );
+    
+    let instructions_pt3 = Paragraph::new("Reveal a Tile with Enter")
+                                                            .block(Block::new()
+                                                                          .borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
+                                                                          .border_type(BorderType::Rounded)
+                                                                          .green()      
+                                                        );
+
+    frame.render_widget(instructions_pt1, instructions_layout[0]);
+    frame.render_widget(instructions_pt2, instructions_layout[1]);
+    frame.render_widget(instructions_pt3, instructions_layout[2]);
+
+
+
 }
 
 // might have fail and succeed 
