@@ -206,6 +206,13 @@ fn tile(column: f64, row: f64, revealed: bool, tiletype: i8) ->Rectangle {
 pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let base = base_layout(frame);
 
+    // todo
+    // figure out why the curser
+    // title is not changing 
+    // when i press the buttons
+    // might be because 
+    // it does not have state??
+
     let board_layout = Layout::default()
                                         .direction(Direction::Horizontal)
                                         .constraints(
