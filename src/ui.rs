@@ -218,17 +218,22 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .split(base[0]);
 
 
-    let rows = app.field().unwrap().rows() as f64;
-    let columns = app.field().unwrap().columns() as f64;
+    let rows = app.field().unwrap().rows();
+    let columns = app.field().unwrap().columns();
 
     // render the board in the top
     // temporary just render one tile
     let board = Canvas::default()
-                                        .x_bounds([0.0, rows])
-                                        .y_bounds([0.0, columns])
+                                        .x_bounds([0.0, rows as f64])
+                                        .y_bounds([0.0, columns as f64])
                                         .marker(ratatui::symbols::Marker::Bar)
                                         .paint(|ctx| {
-                                            ctx.draw(&tile(0.0, 0.0, false, 0));
+                                            for row in 0..rows {
+                                                for column in 0..columns {
+                                                    ctx.draw(&tile(column as f64, row as f64, false, 0));
+                                                }
+                                            }
+                                            
                                         })
                                         .block(Block::new()
                                                 .borders(Borders::TOP | Borders::BOTTOM)
