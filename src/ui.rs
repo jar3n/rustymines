@@ -103,7 +103,7 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
     frame.render_widget(title_text, title_layout[1]);
 
     let instructions_text = Paragraph::new(
-                                                            "Select a difficulty using Up and Down Arrow Keys or 'W' and 'S'"
+                                                            "Select a difficulty using 'W' and 'S'"
                                                             .green()
                                                             .dim()
                                                         )
@@ -240,20 +240,21 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                                           .borders(Borders::LEFT | Borders::TOP | Borders::RIGHT)
                                                                           .border_type(BorderType::Rounded)
                                                                           .green()      
-                                                        );
+                                                        ).centered();
     let instructions_pt2 = Paragraph::new("Flag a tile with F")
                                                             .block(Block::new()
                                                                           .borders(Borders::LEFT | Borders::RIGHT)
                                                                           .border_type(BorderType::Rounded)
-                                                                          .green()      
-                                                        );
+                                                                          .green()
+                                                                                
+                                                        ).centered();
     
     let instructions_pt3 = Paragraph::new("Reveal a Tile with Enter")
                                                             .block(Block::new()
                                                                           .borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
                                                                           .border_type(BorderType::Rounded)
                                                                           .green()      
-                                                        );
+                                                        ).centered();
 
     frame.render_widget(instructions_pt1, instructions_layout[0]);
     frame.render_widget(instructions_pt2, instructions_layout[1]);
