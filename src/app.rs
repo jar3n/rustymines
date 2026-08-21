@@ -51,13 +51,20 @@ impl ToString for DifficultyLevel {
     }
 }
 
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right
+}
 
 
 pub struct App {
     should_quit: bool,
     difficulty: DifficultyLevel,
     state: Views,
-    field: Option<MineField>
+    field: Option<MineField>,
+    selected_tile: (usize, usize) // column, row
 }
 
 
@@ -68,7 +75,8 @@ impl App {
             should_quit: false,
             difficulty: DifficultyLevel::Easy,
             state: Views::Start,
-            field: None
+            field: None,
+            selected_tile: (0,0)
         }
 
     }
@@ -136,11 +144,52 @@ impl App {
             DifficultyLevel::Hard => self.field = Some(MineField::new(9, 9, 27)),
             DifficultyLevel::Extreme => self.field = Some(MineField::new(10, 10, 40)),
         }
-
     }
 
     pub fn field(self: &Self) -> Option<MineField> {
         self.field.clone()
+    }
+
+    pub fn selected_tile(self: &Self) -> (usize, usize) {
+        self.selected_tile.clone()
+    }
+
+    pub fn move_selected_tile(self: &mut Self, direction: Direction) {
+
+        match direction {
+            Direction::Down => {
+                let new_tile = self.selected_tile;
+
+                match new_tile.1.checked_add(1) {
+                    None => {},
+                    Some(_) => self.selected_tile = new_tile
+                }
+            },
+            Direction::Up => {
+                let new_tile = self.selected_tile;
+
+                match new_tile.1.checked_sub(1) {
+                    None => {},
+                    Some(_) => self.selected_tile = new_tile
+                }
+            },
+            Direction::Left => {
+                 let new_tile = self.selected_tile;
+
+                match new_tile.0.checked_sub(1) {
+                    None => {},
+                    Some(_) => self.selected_tile = new_tile
+                }
+            },
+            Direction::Right => {
+                 let new_tile = self.selected_tile;
+
+                match new_tile.0.checked_add(1) {
+                    None => {},
+                    Some(_) => self.selected_tile = new_tile
+                }
+            },      
+        }
     }
 
 }
