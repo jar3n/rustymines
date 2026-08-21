@@ -4,7 +4,7 @@ use crossterm::event::{
     KeyCode
 };
 
-use crate::app::{App, DifficultyLevel};
+use crate::app::{App, DifficultyLevel, Direction};
 
 fn move_level_select_up(current_selection: &DifficultyLevel) -> DifficultyLevel {
     // might change this to use the iterator instead
@@ -42,8 +42,16 @@ pub fn handle_start_events(app: &mut App, key_event: KeyEvent) {
 
 pub fn handle_game_events(app: &mut App, key_event: KeyEvent) {
 
-    // temporary in this menu any button causes exiting the app
+    // todo
+    // add flagging tiles
+    // and revealing tiles
     match key_event.code {
-        _ => app.quit(),
+       KeyCode::Char('W') | KeyCode::Char('w') => app.move_selected_tile(Direction::Up),
+       KeyCode::Char('S') | KeyCode::Char('s') => app.move_selected_tile(Direction::Down),
+       KeyCode::Char('A') | KeyCode::Char('a') => app.move_selected_tile(Direction::Left),
+       KeyCode::Char('D') | KeyCode::Char('d') => app.move_selected_tile(Direction::Right),
+       KeyCode::Char('Q') | KeyCode::Char('q') => app.quit(),
+
+       _ => {},
     }
 }

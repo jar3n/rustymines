@@ -247,7 +247,13 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .green()
                                         .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
                                         .border_type(BorderType::Rounded)
-                                        .title(format!("Level: {:?}, Size: {} by {}", app.difficulty(), app.field().unwrap().columns(), app.field().unwrap().rows())),
+                                        .title(format!("Level: {:?}, Size: {} by {}, Cursor at ({},{})", 
+                                                        app.difficulty(), 
+                                                        app.field().unwrap().columns(), 
+                                                        app.field().unwrap().rows(),
+                                                        app.selected_tile().0,
+                                                        app.selected_tile().1
+                                                        )),
                          board_layout[0]);
 
     frame.render_widget(Block::new()
