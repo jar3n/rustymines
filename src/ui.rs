@@ -244,7 +244,7 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                         rows as f64,
                                                         column as f64,
                                                         row as f64,
-                                                        tile_state != None, 
+                                                        tile_state != None && tile_state != Some(-1), 
                                                     match tile_state {
                                                         None => 0,
                                                         Some(y) => y
