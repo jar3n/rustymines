@@ -3,16 +3,16 @@
 
 use std::rc::Rc;
 
-use crate::app::{
+use crate::{app::{
     App,
     DifficultyLevel
-};
+}, minefield::MineField};
 
 use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{Green, White, Red, Gray, Yellow, LightMagenta}, Style, Stylize
+        Color::{Gray, Green, LightBlue, LightMagenta, Red, White, Yellow}, Style, Stylize
     }, text::Line, widgets::{
         Block, 
         BorderType, 
@@ -197,7 +197,7 @@ fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, 
         } else if revealed {
             match tiletype {
                 -1 => Red,
-                0 => Gray,
+                0 => LightBlue,
                 _ => Yellow,
             }
         } else {
@@ -273,12 +273,11 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .green()
                                         .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
                                         .border_type(BorderType::Rounded)
-                                        .title(format!("Level: {:?}, Size: {} by {}, Cursor at ({},{})", 
+                                        .title(format!("Level: {:?}, Size: {} by {}, Number of Bombs: {}", 
                                                         app.difficulty(), 
                                                         columns, 
                                                         rows,
-                                                        app.selected_tile()[0],
-                                                        app.selected_tile()[1]
+                                                        app.field().num_bombs()
                                                         )),
                          board_layout[0]);
 

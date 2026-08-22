@@ -51,6 +51,7 @@ pub fn handle_game_events(app: &mut App, key_event: KeyEvent) {
        KeyCode::Char('A') | KeyCode::Char('a') => app.move_selected_tile(Direction::Left),
        KeyCode::Char('D') | KeyCode::Char('d') => app.move_selected_tile(Direction::Right),
        KeyCode::Char('F') | KeyCode::Char('f') => app.flag_spot(app.selected_tile()[1], app.selected_tile()[0]),
+       KeyCode::Enter => app.reveal_spot(app.selected_tile()[1], app.selected_tile()[0]),
        KeyCode::Char('Q') | KeyCode::Char('q') => app.quit(),
 
        _ => {},

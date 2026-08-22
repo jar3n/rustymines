@@ -165,6 +165,22 @@ impl App {
         self.field = Some(field);
     }
 
+    pub fn reveal_spot(self: &mut Self, row: usize, column:usize) {
+        // TODO
+        // add trigger here for if a bomb
+        // is revealed for losing
+        // add trigger for win
+        // if all non bomb squares
+        // are found
+
+
+        let mut field = self.field.clone().unwrap();
+
+        field.reveal_square(row, column);
+
+        self.field = Some(field);
+    }
+
     pub fn move_selected_tile(self: &mut Self, direction: Direction) {
 
         match direction {

@@ -80,8 +80,10 @@ impl MineField {
 
         let index:usize = (row * self.columns) + column;
 
-        if self.state[index] == None {
-            self.state[index] = Some(self.check_neighbors(row, column));
+        if self.state[index] == None || self.state[index] == Some(-1){
+            if self.state[index] != Some(-1) {
+                self.state[index] = Some(self.check_neighbors(row, column));
+            }
 
             self.revealed_spots.push(index);
         }
@@ -91,6 +93,10 @@ impl MineField {
             self.unflag_square(row, column);
         }
 
+    }
+
+    pub fn num_bombs(self: &Self) -> usize  {
+        self.num_bombs
     }
 
 
