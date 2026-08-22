@@ -17,6 +17,7 @@ pub struct MineField {
     rows: usize,
     state: Vec<Option<i8>>,
     flagged_spots: Vec<usize>,
+    revealed_spots: Vec<usize>,
     num_bombs: usize,
     area: usize,
 }
@@ -28,7 +29,8 @@ impl Default for MineField {
             state: vec![None; 9],
             num_bombs: 0,
             area: 9,
-            flagged_spots: vec![]
+            flagged_spots: vec![],
+            revealed_spots: vec![]
         }
     }
 }
@@ -45,7 +47,8 @@ impl MineField {
             state: vec![None],
             num_bombs: num_bombs,
             area: 1,
-            flagged_spots: vec![]
+            flagged_spots: vec![],
+            revealed_spots: vec![]
         };
 
         field.area = field.columns*field.rows;
@@ -79,6 +82,8 @@ impl MineField {
 
         if self.state[index] == None {
             self.state[index] = Some(self.check_neighbors(row, column));
+
+            self.revealed_spots.push(index);
         }
 
         // unflag the square when revealed
@@ -88,10 +93,19 @@ impl MineField {
 
     }
 
+
+    pub fn is_revealed(self: &Self, row: usize, column: usize) -> bool{
+        let index:usize = (row * self.columns) + column;
+
+        self.revealed_spots.contains(&index)
+
+    }
+
+
     pub fn flag_square(self: &mut Self, row: usize, column: usize) {
         let index:usize = (row * self.columns) + column;
 
-        if !self.flagged_spots.contains(&index) && self.state[index] == None {
+        if !self.flagged_spots.contains(&index) && !self.revealed_spots.contains(&index) {
             self.flagged_spots.push(index);
         }
         

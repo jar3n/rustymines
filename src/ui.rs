@@ -244,12 +244,13 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                     let tile_state = app.field().check_square(row, column);
                                                     let is_selected = column == app.selected_tile()[0] && row == app.selected_tile()[1];
                                                     let is_flagged = app.field().is_flagged(row, column);
+                                                    let is_revealed = app.field().is_revealed(row, column);
                                                     ctx.draw(&tile(
                                                         columns as f64,
                                                         rows as f64,
                                                         column as f64,
                                                         row as f64,
-                                                        tile_state != None && tile_state != Some(-1), 
+                                                        is_revealed, 
                                                         is_selected,
                                                         is_flagged,
                                                         match tile_state {
