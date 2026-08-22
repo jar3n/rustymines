@@ -17,6 +17,7 @@ pub struct MineField {
     rows: usize,
     state: Vec<Option<i8>>,
     num_bombs: usize,
+    bomb_spots: Vec<usize>,
     area: usize,
 }
 impl Default for MineField {
@@ -25,6 +26,7 @@ impl Default for MineField {
             columns: 3,
             rows: 3,
             state: vec![None; 9],
+            bomb_spots: vec![0; 9],
             num_bombs: 0,
             area: 9,
         }
@@ -43,6 +45,7 @@ impl MineField {
             state: vec![None],
             num_bombs: num_bombs,
             area: 1,
+            bomb_spots: vec![],
         };
 
         field.area = field.columns*field.rows;
@@ -51,24 +54,18 @@ impl MineField {
 
 
         // set the bomb indices
-        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs);
-        for index in bomb_spots {
-            field.state[index] = Some(-1);
-        }
-
+        field.bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs).into_vec();
+        
         field
         
     }
 
-    pub fn check_square(self: &Self, row_index: usize, col_index: usize) -> bool{
+    pub fn check_square(self: &Self, row_index: usize, col_index: usize) -> Option<i8>{
         // get the type the square is 
 
         let index:usize = (row_index * self.columns) + col_index;
         
-        match self.state[index] {
-            Some(-1) => true,
-            None | Some(_) => false,
-        }
+        self.state[index]
     }
 
     fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {

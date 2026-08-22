@@ -64,7 +64,7 @@ pub struct App {
     difficulty: DifficultyLevel,
     state: Views,
     field: Option<MineField>,
-    selected_tile: (usize, usize) // column, row
+    selected_tile: Vec<usize> // column, row
 }
 
 
@@ -76,7 +76,7 @@ impl App {
             difficulty: DifficultyLevel::Easy,
             state: Views::Start,
             field: None,
-            selected_tile: (0,0)
+            selected_tile: vec![0,0]
         }
 
     }
@@ -150,7 +150,7 @@ impl App {
         self.field.clone()
     }
 
-    pub fn selected_tile(self: &Self) -> (usize, usize) {
+    pub fn selected_tile(self: &Self) -> Vec<usize> {
         self.selected_tile.clone()
     }
 
@@ -158,35 +158,36 @@ impl App {
 
         match direction {
             Direction::Down => {
-                let new_tile = self.selected_tile;
+                let new_tile = self.selected_tile();
 
-                match new_tile.1.checked_add(1) {
-                    None => {},
-                    Some(_) => self.selected_tile = new_tile
+                if let Some(y) = new_tile[1].checked_sub(1) && 
+                    y < self.field().unwrap().rows(){
+                    self.selected_tile[1] = y;
                 }
             },
             Direction::Up => {
-                let new_tile = self.selected_tile;
+                let new_tile = self.selected_tile();
 
-                match new_tile.1.checked_sub(1) {
-                    None => {},
-                    Some(_) => self.selected_tile = new_tile
+                if let Some(y) = new_tile[1].checked_add(1) && 
+                    y < self.field().unwrap().rows(){
+                    self.selected_tile[1] = y;
                 }
+
             },
             Direction::Left => {
-                 let new_tile = self.selected_tile;
+                let new_tile = self.selected_tile();
 
-                match new_tile.0.checked_sub(1) {
-                    None => {},
-                    Some(_) => self.selected_tile = new_tile
+                if let Some(y) = new_tile[0].checked_sub(1) && 
+                    y < self.field().unwrap().columns() { 
+                    self.selected_tile[0] = y;
                 }
             },
             Direction::Right => {
-                 let new_tile = self.selected_tile;
+                let new_tile = self.selected_tile();
 
-                match new_tile.0.checked_add(1) {
-                    None => {},
-                    Some(_) => self.selected_tile = new_tile
+                if let Some(y) = new_tile[0].checked_add(1) && 
+                    y < self.field().unwrap().columns(){
+                    self.selected_tile[0] = y;
                 }
             },      
         }

@@ -1,5 +1,6 @@
 
 
+use core::num;
 use std::rc::Rc;
 
 use crate::app::{
@@ -178,7 +179,7 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 }
 
 
-fn tile(column: f64, row: f64, revealed: bool, tiletype: i8) ->Rectangle {
+fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, tiletype: i8) ->Rectangle {
     // todo 
     // add size adjustment 
     // and translate row column coordinates
@@ -187,8 +188,8 @@ fn tile(column: f64, row: f64, revealed: bool, tiletype: i8) ->Rectangle {
     Rectangle { 
         x: column, 
         y: row, 
-        width: 0.01, 
-        height: 0.1, 
+        width: 1.0/num_columns, 
+        height: 1.0/num_rows, 
         color: if revealed {
             match tiletype {
                 -1 => Red,
@@ -233,11 +234,21 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let board = Canvas::default()
                                         .x_bounds([0.0, rows as f64])
                                         .y_bounds([0.0, columns as f64])
-                                        .marker(ratatui::symbols::Marker::Bar)
+                                        .marker(ratatui::symbols::Marker::Quadrant)
                                         .paint(|ctx| {
                                             for row in 0..rows {
                                                 for column in 0..columns {
-                                                    ctx.draw(&tile(column as f64, row as f64, false, 0));
+                                                    let tile_state = app.field().unwrap().check_square(row, column);
+                                                    ctx.draw(&tile(
+                                                        columns as f64,
+                                                        rows as f64,
+                                                        column as f64,
+                                                        row as f64,
+                                                        tile_state != None, 
+                                                    match tile_state {
+                                                        None => 0,
+                                                        Some(y) => y
+                                                    }));
                                                 }
                                             }
                                             
@@ -258,8 +269,8 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                         app.difficulty(), 
                                                         app.field().unwrap().columns(), 
                                                         app.field().unwrap().rows(),
-                                                        app.selected_tile().0,
-                                                        app.selected_tile().1
+                                                        app.selected_tile()[0],
+                                                        app.selected_tile()[1]
                                                         )),
                          board_layout[0]);
 
