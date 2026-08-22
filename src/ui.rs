@@ -3,16 +3,18 @@
 
 use std::rc::Rc;
 
-use crate::{app::{
+use crate::app::{
     App,
     DifficultyLevel
-}, minefield::MineField};
+};
 
 use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{Gray, Green, LightBlue, LightMagenta, Red, White, Yellow}, Style, Stylize
+        Color::{ Green, LightBlue, LightMagenta, Red, White, Yellow},
+        Style, 
+        Stylize
     }, text::Line, widgets::{
         Block, 
         BorderType, 
