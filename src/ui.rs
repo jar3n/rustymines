@@ -12,7 +12,7 @@ use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{Green, White, Red, Gray, Yellow}, Style, Stylize
+        Color::{Green, White, Red, Gray, Yellow, LightMagenta}, Style, Stylize
     }, text::Line, widgets::{
         Block, 
         BorderType, 
@@ -179,7 +179,7 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 }
 
 
-fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, tiletype: i8) ->Rectangle {
+fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, is_selected: bool, is_flagged: bool, tiletype: i8) ->Rectangle {
     // todo 
     // add size adjustment 
     // and translate row column coordinates
@@ -190,12 +190,15 @@ fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, 
         y: row, 
         width: 1.0/num_columns, 
         height: 1.0/num_rows, 
-        color: if revealed {
+        color: if is_selected {
+            Green
+        } else if is_flagged {
+            LightMagenta
+        } else if revealed {
             match tiletype {
                 -1 => Red,
                 0 => Gray,
                 _ => Yellow,
-
             }
         } else {
             White
@@ -226,8 +229,8 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .split(base[0]);
 
 
-    let rows = app.field().unwrap().rows();
-    let columns = app.field().unwrap().columns();
+    let rows = app.field().rows();
+    let columns = app.field().columns();
 
     // render the board in the top
     // temporary just render one tile
@@ -238,14 +241,18 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .paint(|ctx| {
                                             for row in 0..rows {
                                                 for column in 0..columns {
-                                                    let tile_state = app.field().unwrap().check_square(row, column);
+                                                    let tile_state = app.field().check_square(row, column);
+                                                    let is_selected = column == app.selected_tile()[0] && row == app.selected_tile()[1];
+                                                    let is_flagged = app.field().is_flagged(row, column);
                                                     ctx.draw(&tile(
                                                         columns as f64,
                                                         rows as f64,
                                                         column as f64,
                                                         row as f64,
                                                         tile_state != None && tile_state != Some(-1), 
-                                                    match tile_state {
+                                                        is_selected,
+                                                        is_flagged,
+                                                        match tile_state {
                                                         None => 0,
                                                         Some(y) => y
                                                     }));
@@ -267,8 +274,8 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .border_type(BorderType::Rounded)
                                         .title(format!("Level: {:?}, Size: {} by {}, Cursor at ({},{})", 
                                                         app.difficulty(), 
-                                                        app.field().unwrap().columns(), 
-                                                        app.field().unwrap().rows(),
+                                                        columns, 
+                                                        rows,
                                                         app.selected_tile()[0],
                                                         app.selected_tile()[1]
                                                         )),

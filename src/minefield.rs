@@ -16,6 +16,7 @@ pub struct MineField {
     columns: usize,
     rows: usize,
     state: Vec<Option<i8>>,
+    flagged_spots: Vec<usize>,
     num_bombs: usize,
     area: usize,
 }
@@ -27,6 +28,7 @@ impl Default for MineField {
             state: vec![None; 9],
             num_bombs: 0,
             area: 9,
+            flagged_spots: vec![]
         }
     }
 }
@@ -43,6 +45,7 @@ impl MineField {
             state: vec![None],
             num_bombs: num_bombs,
             area: 1,
+            flagged_spots: vec![]
         };
 
         field.area = field.columns*field.rows;
@@ -70,7 +73,7 @@ impl MineField {
         self.state[index]
     }
 
-    pub fn update_square(self: &mut Self, row: usize, column: usize) {
+    pub fn reveal_square(self: &mut Self, row: usize, column: usize) {
 
         let index:usize = (row * self.columns) + column;
 
@@ -78,6 +81,36 @@ impl MineField {
             self.state[index] = Some(self.check_neighbors(row, column));
         }
 
+        // unflag the square when revealed
+        if self.is_flagged(row, column) {
+            self.unflag_square(row, column);
+        }
+
+    }
+
+    pub fn flag_square(self: &mut Self, row: usize, column: usize) {
+        let index:usize = (row * self.columns) + column;
+
+        if !self.flagged_spots.contains(&index) && self.state[index] == None {
+            self.flagged_spots.push(index);
+        }
+        
+    }
+
+    pub fn unflag_square(self: &mut Self, row: usize, column: usize){
+        let index:usize = (row * self.columns) + column;
+
+        if self.flagged_spots.contains(&index) {
+            let index_of_index = self.flagged_spots.iter().position(|r| *r == index).unwrap();
+
+            self.flagged_spots.remove(index_of_index);
+        }
+    }
+
+    pub fn is_flagged(self: &Self, row: usize, column:usize) -> bool{
+        let index:usize = (row * self.columns) + column;
+
+        self.flagged_spots.contains(&index)
     }
 
     fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {

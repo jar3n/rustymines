@@ -146,12 +146,23 @@ impl App {
         }
     }
 
-    pub fn field(self: &Self) -> Option<MineField> {
-        self.field.clone()
+    pub fn field(self: &Self) -> MineField {
+        self.field.clone().unwrap()
     }
 
     pub fn selected_tile(self: &Self) -> Vec<usize> {
         self.selected_tile.clone()
+    }
+
+    pub fn flag_spot(self: &mut Self, row: usize, column:usize) {
+        let mut field = self.field.clone().unwrap();
+
+        match field.is_flagged(row, column){
+            true => field.unflag_square(row, column),
+            false => field.flag_square(row, column)
+        }
+
+        self.field = Some(field);
     }
 
     pub fn move_selected_tile(self: &mut Self, direction: Direction) {
@@ -161,7 +172,7 @@ impl App {
                 let new_tile = self.selected_tile();
 
                 if let Some(y) = new_tile[1].checked_sub(1) && 
-                    y < self.field().unwrap().rows(){
+                    y < self.field().rows(){
                     self.selected_tile[1] = y;
                 }
             },
@@ -169,7 +180,7 @@ impl App {
                 let new_tile = self.selected_tile();
 
                 if let Some(y) = new_tile[1].checked_add(1) && 
-                    y < self.field().unwrap().rows(){
+                    y < self.field().rows(){
                     self.selected_tile[1] = y;
                 }
 
@@ -178,7 +189,7 @@ impl App {
                 let new_tile = self.selected_tile();
 
                 if let Some(y) = new_tile[0].checked_sub(1) && 
-                    y < self.field().unwrap().columns() { 
+                    y < self.field().columns() { 
                     self.selected_tile[0] = y;
                 }
             },
@@ -186,7 +197,7 @@ impl App {
                 let new_tile = self.selected_tile();
 
                 if let Some(y) = new_tile[0].checked_add(1) && 
-                    y < self.field().unwrap().columns(){
+                    y < self.field().columns(){
                     self.selected_tile[0] = y;
                 }
             },      
