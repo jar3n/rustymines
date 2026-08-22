@@ -17,7 +17,6 @@ pub struct MineField {
     rows: usize,
     state: Vec<Option<i8>>,
     num_bombs: usize,
-    bomb_spots: Vec<usize>,
     area: usize,
 }
 impl Default for MineField {
@@ -26,7 +25,6 @@ impl Default for MineField {
             columns: 3,
             rows: 3,
             state: vec![None; 9],
-            bomb_spots: vec![0; 9],
             num_bombs: 0,
             area: 9,
         }
@@ -45,7 +43,6 @@ impl MineField {
             state: vec![None],
             num_bombs: num_bombs,
             area: 1,
-            bomb_spots: vec![],
         };
 
         field.area = field.columns*field.rows;
@@ -54,18 +51,33 @@ impl MineField {
 
 
         // set the bomb indices
-        field.bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs).into_vec();
-        
+        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs).into_vec();
+        for spot in bomb_spots {
+            field.state[spot] = Some(-1);
+        }
+
         field
         
     }
 
     pub fn check_square(self: &Self, row_index: usize, col_index: usize) -> Option<i8>{
         // get the type the square is 
+        // -1 means bomb
+        // 0 and up means safe but neighbors 0 and up bombs
 
         let index:usize = (row_index * self.columns) + col_index;
         
         self.state[index]
+    }
+
+    pub fn update_square(self: &mut Self, row: usize, column: usize) {
+
+        let index:usize = (row * self.columns) + column;
+
+        if self.state[index] == None {
+            self.state[index] = Some(self.check_neighbors(row, column));
+        }
+
     }
 
     fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {
@@ -156,32 +168,24 @@ impl MineField {
 
     }
 
-    pub fn check_neighbors(self: &mut Self, row_index: usize, col_index: usize) -> i8 {
+    fn check_neighbors(self: &Self, row_index: usize, col_index: usize) -> i8 {
 
         // count the number of bombs adjacent to the current square
 
-        let index = (row_index * self.columns) + col_index;
 
-        match self.state[index] {
-            Some(count) => count,
-            None => {
-                        let neighbors = self.get_neighbors(row_index, col_index);
+        let neighbors = self.get_neighbors(row_index, col_index);
 
-                        let mut count = 0;
+        let mut count = 0;
 
-                        for neighbor in neighbors {
-                            let neighbor_val = self.state[neighbor];
-                            if neighbor_val == Some(-1){
-                                count += 1;
-                            }
-                        }
+        for neighbor in neighbors {
+            let neighbor_val = self.state[neighbor];
+            if neighbor_val == Some(-1){
+                count += 1;
+            }
+        }
 
-                        // update the square value
-                        self.state[index] = Some(count);
-
-                        count
-                    }
-                }
+        count
+            
     }
 
 
@@ -416,7 +420,7 @@ mod tests {
 
         let is_bomb = field.check_square(1,1);
 
-        assert!(is_bomb);
+        assert!(is_bomb == Some(-1));
     }
 
     #[test]
@@ -424,12 +428,12 @@ mod tests {
         let field = set_bomb_location(1,1);
         let is_bomb = field.check_square(0,0);
 
-        assert!(!is_bomb);
+        assert!(is_bomb != Some(-1));
     }
 
     #[test]
     fn test_check_neighbors_center_one() {
-        let mut field = set_bomb_location(1, 1);
+        let field = set_bomb_location(1, 1);
 
         // bomb in center means all non bomb squares
         // have one bomb neighbor
@@ -469,7 +473,7 @@ mod tests {
 
                 if two_bomb_neighbors.contains(&coords) {
                     assert_eq!(bomb_count,2);
-                } else if field.check_square(coords.0, coords.1) {
+                } else if field.check_square(coords.0, coords.1) == Some(-1) {
                     // ignore if its a bomb square
                     continue;
                 } 
