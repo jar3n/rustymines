@@ -11,7 +11,7 @@ use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{Green, LightBlue, LightMagenta, Red, Rgb, White}, Style, Stylize
+        Color::{Green, LightBlue, LightMagenta, Red, White, Yellow}, Style, Stylize
     }, text::Line, widgets::{
         Block, 
         BorderType, 
@@ -27,8 +27,6 @@ use ratatui::{
     }
 };
 use strum::IntoEnumIterator;
-
-use hsv::hsv_to_rgb;
 
 
 
@@ -198,14 +196,7 @@ fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, 
             match tiletype {
                 -1 => Red,
                 0 => LightBlue,
-                _ => {
-                    // use hsv to have a brightness increase
-                    // per the number of bombs that neighbor the current square
-                    let rgb = hsv_to_rgb(60.0, 1.0, 0.2 + (tiletype as f64 * 0.1));
-
-                    Rgb(rgb.0, rgb.1, rgb.2)
-
-                },
+                _ => Yellow,
             }
         } else {
             White

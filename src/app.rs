@@ -144,10 +144,25 @@ impl App {
 
         match self.difficulty {
             DifficultyLevel::Easy => self.field = Some(MineField::new(5, 5, 3)),
-            DifficultyLevel::Medium => self.field = Some(MineField::new(7, 7, 14)),
-            DifficultyLevel::Hard => self.field = Some(MineField::new(9, 9, 27)),
-            DifficultyLevel::Extreme => self.field = Some(MineField::new(10, 10, 40)),
+            DifficultyLevel::Medium => self.field = Some(MineField::new(7, 7, 8)),
+            DifficultyLevel::Hard => self.field = Some(MineField::new(9, 9, 16)),
+            DifficultyLevel::Extreme => self.field = Some(MineField::new(10, 10, 20)),
         }
+    }
+
+    pub fn return_to_start(self: &mut Self) {
+        // set view to start 
+        // and reset difficulty
+        // and minefield
+
+        self.state = Views::Start;
+
+        self.field = None;
+
+        self.has_lost = false;
+        self.has_won = false;
+
+        self.selected_tile = vec![0,0];
     }
 
     pub fn field(self: &Self) -> MineField {
