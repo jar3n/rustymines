@@ -1,6 +1,4 @@
 
-
-
 use std::rc::Rc;
 
 use crate::app::{
@@ -12,9 +10,7 @@ use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{ Green, LightBlue, LightMagenta, Red, White, Yellow},
-        Style, 
-        Stylize
+        Color::{ Green, LightBlue, LightMagenta, Red, Rgb, White, Yellow}, Style, Stylize
     }, text::Line, widgets::{
         Block, 
         BorderType, 
@@ -31,6 +27,7 @@ use ratatui::{
 };
 use strum::IntoEnumIterator;
 
+use hsv::hsv_to_rgb;
 
 
 
@@ -200,7 +197,14 @@ fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, 
             match tiletype {
                 -1 => Red,
                 0 => LightBlue,
-                _ => Yellow,
+                _ => {
+                    // use hsv to have a brightness increase
+                    // per the number of bombs that neighbor the current square
+                    let rgb = hsv_to_rgb(60.0, 1.0, 0.2 + (tiletype as f64 * 0.1));
+
+                    Rgb(rgb.0, rgb.1, rgb.2)
+
+                },
             }
         } else {
             White
@@ -243,21 +247,22 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .paint(|ctx| {
                                             for row in 0..rows {
                                                 for column in 0..columns {
-                                                    let tile_state = app.field().check_square(row, column);
+                                                    let tile_state = app.field().is_bomb(row, column);
                                                     let is_selected = column == app.selected_tile()[0] && row == app.selected_tile()[1];
                                                     let is_flagged = app.field().is_flagged(row, column);
                                                     let is_revealed = app.field().is_revealed(row, column);
+
                                                     ctx.draw(&tile(
                                                         columns as f64,
                                                         rows as f64,
                                                         column as f64,
                                                         row as f64,
                                                         is_revealed, 
-                                                        is_selected,
+                                                        is_selected && !(app.has_lost() || app.has_won()),
                                                         is_flagged,
                                                         match tile_state {
-                                                        None => 0,
-                                                        Some(y) => y
+                                                        true => -1,
+                                                        false => app.field().check_neighbors(row,column)
                                                     }));
                                                 }
                                             }
@@ -275,12 +280,31 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                         .green()
                                         .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
                                         .border_type(BorderType::Rounded)
-                                        .title(format!("Level: {:?}, Size: {} by {}, Number of Bombs: {}", 
+                                        .title(
+                                            if app.has_lost() {
+                                                format!("Level: {:?}, Size: {} by {}, Number of Bombs: {}, You Lost", 
                                                         app.difficulty(), 
                                                         columns, 
                                                         rows,
                                                         app.field().num_bombs()
-                                                        )),
+                                                        )
+                                            } else if app.has_won() {
+                                                    format!("Level: {:?}, Size: {} by {}, Number of Bombs: {}, You WON!!!!!", 
+                                                        app.difficulty(), 
+                                                        columns, 
+                                                        rows,
+                                                        app.field().num_bombs()
+                                                        )
+                                            } else {
+                                                format!("Level: {:?}, Size: {} by {}, Number of Bombs: {}", 
+                                                        app.difficulty(), 
+                                                        columns, 
+                                                        rows,
+                                                        app.field().num_bombs()
+                                                        )
+                                            }
+                                            
+                                            ),
                          board_layout[0]);
 
     frame.render_widget(Block::new()
@@ -293,6 +317,7 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
 
     let instructions_layout = Layout::default()
                                                 .constraints(vec![
+                                                    Constraint::Fill(1),
                                                     Constraint::Fill(1),
                                                     Constraint::Fill(1),
                                                     Constraint::Fill(1)
@@ -315,6 +340,13 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     
     let instructions_pt3 = Paragraph::new("Reveal a Tile with Enter")
                                                             .block(Block::new()
+                                                                          .borders(Borders::LEFT | Borders::RIGHT)
+                                                                          .border_type(BorderType::Rounded)
+                                                                          .green()      
+                                                        ).centered();
+    
+    let instructions_pt4 = Paragraph::new("Quit the game with q")
+                                                            .block(Block::new()
                                                                           .borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
                                                                           .border_type(BorderType::Rounded)
                                                                           .green()      
@@ -323,6 +355,7 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     frame.render_widget(instructions_pt1, instructions_layout[0]);
     frame.render_widget(instructions_pt2, instructions_layout[1]);
     frame.render_widget(instructions_pt3, instructions_layout[2]);
+    frame.render_widget(instructions_pt4, instructions_layout[3]);
 
 
 

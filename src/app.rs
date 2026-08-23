@@ -64,7 +64,9 @@ pub struct App {
     difficulty: DifficultyLevel,
     state: Views,
     field: Option<MineField>,
-    selected_tile: Vec<usize> // column, row
+    selected_tile: Vec<usize>, // column, row
+    has_won: bool,
+    has_lost: bool
 }
 
 
@@ -76,7 +78,9 @@ impl App {
             difficulty: DifficultyLevel::Easy,
             state: Views::Start,
             field: None,
-            selected_tile: vec![0,0]
+            selected_tile: vec![0,0],
+            has_lost: false,
+            has_won: false
         }
 
     }
@@ -179,45 +183,71 @@ impl App {
         field.reveal_square(row, column);
 
         self.field = Some(field);
+
+
+        // check the square is a bomb
+
+        let borrow_field = &self.field();
+
+        if borrow_field.is_bomb(row, column) {
+            self.has_lost = true;
+        } else if borrow_field.num_revealed_spots() == borrow_field.area() - borrow_field.num_bombs(){
+            self.has_won = true;
+        }
+
+
+        
+    }
+
+    pub fn has_lost(self: &Self) -> bool {
+        self.has_lost
+    }
+
+    pub fn has_won(self: &Self) -> bool {
+        self.has_won
     }
 
     pub fn move_selected_tile(self: &mut Self, direction: Direction) {
 
-        match direction {
-            Direction::Down => {
-                let new_tile = self.selected_tile();
+        if !(self.has_lost || self.has_won) {
+            match direction {
+                Direction::Down => {
+                    let new_tile = self.selected_tile();
 
-                if let Some(y) = new_tile[1].checked_sub(1) && 
-                    y < self.field().rows(){
-                    self.selected_tile[1] = y;
-                }
-            },
-            Direction::Up => {
-                let new_tile = self.selected_tile();
+                    if let Some(y) = new_tile[1].checked_sub(1) && 
+                        y < self.field().rows(){
+                        self.selected_tile[1] = y;
+                    }
+                },
+                Direction::Up => {
+                    let new_tile = self.selected_tile();
 
-                if let Some(y) = new_tile[1].checked_add(1) && 
-                    y < self.field().rows(){
-                    self.selected_tile[1] = y;
-                }
+                    if let Some(y) = new_tile[1].checked_add(1) && 
+                        y < self.field().rows(){
+                        self.selected_tile[1] = y;
+                    }
 
-            },
-            Direction::Left => {
-                let new_tile = self.selected_tile();
+                },
+                Direction::Left => {
+                    let new_tile = self.selected_tile();
 
-                if let Some(y) = new_tile[0].checked_sub(1) && 
-                    y < self.field().columns() { 
-                    self.selected_tile[0] = y;
-                }
-            },
-            Direction::Right => {
-                let new_tile = self.selected_tile();
+                    if let Some(y) = new_tile[0].checked_sub(1) && 
+                        y < self.field().columns() { 
+                        self.selected_tile[0] = y;
+                    }
+                },
+                Direction::Right => {
+                    let new_tile = self.selected_tile();
 
-                if let Some(y) = new_tile[0].checked_add(1) && 
-                    y < self.field().columns(){
-                    self.selected_tile[0] = y;
-                }
-            },      
-        }
+                    if let Some(y) = new_tile[0].checked_add(1) && 
+                        y < self.field().columns(){
+                        self.selected_tile[0] = y;
+                    }
+                },      
+            }
+        } 
+
+        
     }
 
 }

@@ -66,14 +66,12 @@ impl MineField {
         
     }
 
-    pub fn check_square(self: &Self, row_index: usize, col_index: usize) -> Option<i8>{
-        // get the type the square is 
-        // -1 means bomb
-        // 0 and up means safe but neighbors 0 and up bombs
+    pub fn is_bomb(self: &Self, row_index: usize, col_index: usize) -> bool{
+        // check if square is bomb
 
         let index:usize = (row_index * self.columns) + col_index;
         
-        self.state[index]
+        self.state[index] == Some(-1)
     }
 
     pub fn reveal_square(self: &mut Self, row: usize, column: usize) {
@@ -221,7 +219,7 @@ impl MineField {
 
     }
 
-    fn check_neighbors(self: &Self, row_index: usize, col_index: usize) -> i8 {
+    pub fn check_neighbors(self: &Self, row_index: usize, col_index: usize) -> i8 {
 
         // count the number of bombs adjacent to the current square
 
@@ -239,6 +237,14 @@ impl MineField {
 
         count
             
+    }
+
+    pub fn num_revealed_spots(self: &Self) -> usize {
+        self.revealed_spots.len()
+    }
+
+    pub fn area(self: &Self) -> usize {
+        self.area
     }
 
 
@@ -471,17 +477,17 @@ mod tests {
     fn test_check_square_bomb() {
         let field = set_bomb_location(1, 1);
 
-        let is_bomb = field.check_square(1,1);
+        let is_bomb = field.is_bomb(1,1);
 
-        assert!(is_bomb == Some(-1));
+        assert!(is_bomb);
     }
 
     #[test]
     fn test_check_square_no_bomb() {
         let field = set_bomb_location(1,1);
-        let is_bomb = field.check_square(0,0);
+        let is_bomb = field.is_bomb(0,0);
 
-        assert!(is_bomb != Some(-1));
+        assert!(!is_bomb);
     }
 
     #[test]
@@ -526,7 +532,7 @@ mod tests {
 
                 if two_bomb_neighbors.contains(&coords) {
                     assert_eq!(bomb_count,2);
-                } else if field.check_square(coords.0, coords.1) == Some(-1) {
+                } else if field.is_bomb(coords.0, coords.1){
                     // ignore if its a bomb square
                     continue;
                 } 
