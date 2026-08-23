@@ -1,7 +1,14 @@
 [package]
 name = "rustymines"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
+authors = ["James Englander jamreng@proton.me"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/jar3n/rustymines"
+repository = "https://github.com/jar3n/rustymines"
+keywords = ["game", "minesweeper", "tui", "terminal"]
+categories = ["terminal-game"]
 
 [dependencies]
 color-eyre = "0.6.5"
