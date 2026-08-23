@@ -325,6 +325,7 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                     Constraint::Fill(1),
                                                     Constraint::Fill(1),
                                                     Constraint::Fill(1),
+                                                    Constraint::Fill(1),
                                                     Constraint::Fill(1)
                                                 ])
                                                 .split(base[1]);
@@ -350,17 +351,26 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                                           .green()      
                                                         ).centered();
     
-    let instructions_pt4 = Paragraph::new("Quit the game with q")
+    let instructions_pt4 = Paragraph::new("Return to the Start with B")
+                                                            .block(Block::new()
+                                                                          .borders(Borders::LEFT | Borders::RIGHT)
+                                                                          .border_type(BorderType::Rounded)
+                                                                          .green()      
+                                                        ).centered();
+    
+    let instructions_pt5 = Paragraph::new("Quit the game with Q")
                                                             .block(Block::new()
                                                                           .borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
                                                                           .border_type(BorderType::Rounded)
                                                                           .green()      
                                                         ).centered();
 
+
     frame.render_widget(instructions_pt1, instructions_layout[0]);
     frame.render_widget(instructions_pt2, instructions_layout[1]);
     frame.render_widget(instructions_pt3, instructions_layout[2]);
     frame.render_widget(instructions_pt4, instructions_layout[3]);
+    frame.render_widget(instructions_pt5, instructions_layout[4]);
 
 
 
