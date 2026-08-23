@@ -1,4 +1,5 @@
 
+
 use std::rc::Rc;
 
 use crate::app::{
@@ -10,7 +11,7 @@ use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{ Green, LightBlue, LightMagenta, Red, Rgb, White, Yellow}, Style, Stylize
+        Color::{Green, LightBlue, LightMagenta, Red, Rgb, White}, Style, Stylize
     }, text::Line, widgets::{
         Block, 
         BorderType, 
@@ -252,7 +253,12 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                     let is_flagged = app.field().is_flagged(row, column);
                                                     let is_revealed = app.field().is_revealed(row, column);
 
-                                                    ctx.draw(&tile(
+                                                    let num_neighbors = match tile_state {
+                                                        true => -1,
+                                                        false => app.field().check_neighbors(row,column)
+                                                    };
+
+                                                    let tile = tile(
                                                         columns as f64,
                                                         rows as f64,
                                                         column as f64,
@@ -260,12 +266,20 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
                                                         is_revealed, 
                                                         is_selected && !(app.has_lost() || app.has_won()),
                                                         is_flagged,
-                                                        match tile_state {
-                                                        true => -1,
-                                                        false => app.field().check_neighbors(row,column)
-                                                    }));
+                                                        num_neighbors
+                                                    );
+
+                                                    ctx.draw(&tile);
+
+                                                    if is_revealed && !app.field().is_bomb(row, column){
+                                                        let tile_type_str = format!("{}", num_neighbors);
+
+                                                        ctx.print(column as f64 + tile.width/2.0, row as f64, tile_type_str);
+                                                    }
+                                                    
                                                 }
                                             }
+                                            
                                             
                                         })
                                         .block(Block::new()
