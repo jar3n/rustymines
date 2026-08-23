@@ -1,6 +1,21 @@
 # RustyMines 
-A fun project for learning Rust that can be completed in a short time. 
+A fun small project to learn Rust and occupy time between classes.
 
-Currently, the project has a backend working mienfield that passes all tests and a start menu that is purely aesthetic. Below is the start menu.
+## Playing the game 
+The game has four difficulty options increasing in size and number of bombs. 
+The total number of bombs is shown in the top left when in game a long with whether you win or lose.
 
-![Start Menu](readmestuff/StartmenuProgress.png)
+Good luck!
+
+## Building the game
+This is a pure Rust project so just use cargo 
+-  `git clone git@github.com:jar3n/rustymines.git`
+-  `cd rustymines`
+-  `cargo run`
+
+## Next Steps 
+- Making the game board prettier
+    - have all squares keep the same size
+    - have the numbers appear inside the squares in higher level difficulties
+- optional: adding a legend
+- making a release 
