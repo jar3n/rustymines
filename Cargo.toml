@@ -8,8 +8,9 @@ readme = "README.md"
 homepage = "https://github.com/jar3n/rustymines"
 repository = "https://github.com/jar3n/rustymines"
 keywords = ["game", "minesweeper", "tui", "terminal"]
-categories = ["game"]
+categories = ["games"]
 description = "Minesweeper in the terminal"
+exclude = [".gitignore"]
 
 [dependencies]
 color-eyre = "0.6.5"
