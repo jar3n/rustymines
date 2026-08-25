@@ -19,3 +19,8 @@ This is a pure Rust project so just use cargo
     - have the numbers appear inside the squares in higher level difficulties
 - optional: adding a legend
 - making a release 
+
+
+## Installing the game
+To just install the game with cargo
+- `cargo install rustymines-jar3n`
