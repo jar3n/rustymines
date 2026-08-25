@@ -24,6 +24,7 @@ This is a pure Rust project so just use cargo
 ## Installing the game
 To install the game with cargo
 - `cargo install rustymines-jar3n`
+
 To install the game manually
 - download the rustymines binary from the latest release [Latest release](https://github.com/jar3n/rustymines/releases/latest)
 - run it in your preferred terminal
