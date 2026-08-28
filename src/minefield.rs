@@ -10,6 +10,8 @@ each square is either unknown, bomb, flag, or number
 
 use std::option::Option;
 
+use rand::seq::IteratorRandom;
+
 
 #[derive(Clone)]
 pub struct MineField {
@@ -20,6 +22,7 @@ pub struct MineField {
     revealed_spots: Vec<usize>,
     num_bombs: usize,
     area: usize,
+    bombs_set: bool
 }
 impl Default for MineField {
     fn default() -> Self {
@@ -30,7 +33,8 @@ impl Default for MineField {
             num_bombs: 0,
             area: 9,
             flagged_spots: vec![],
-            revealed_spots: vec![]
+            revealed_spots: vec![],
+            bombs_set: true,
         }
     }
 }
@@ -48,22 +52,40 @@ impl MineField {
             num_bombs: num_bombs,
             area: 1,
             flagged_spots: vec![],
-            revealed_spots: vec![]
+            revealed_spots: vec![],
+            bombs_set: false,
         };
 
         field.area = field.columns*field.rows;
 
         field.state = vec![None; field.area.into()];
 
-
-        // set the bomb indices
-        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs).into_vec();
-        for spot in bomb_spots {
-            field.state[spot] = Some(-1);
-        }
-
         field
         
+    }
+
+
+    fn place_bombs(self: &mut Self, revealed_index: usize) {
+        // instead of placing bombs to start
+        // place them after the user makes the first move
+
+        // get all possible bomb indicies
+        let mut possible_indexes: Vec<usize> = (0..self.area).into_iter().collect();
+
+        possible_indexes.remove(possible_indexes.iter().position(|r|*r == revealed_index).unwrap());
+
+        // randomly pick spots from the possible indexes
+        // then remove from the list of options
+        for _ in 0..self.num_bombs {
+            let bomb_spot = *possible_indexes.iter().choose(&mut rand::rng()).unwrap();
+
+            self.state[bomb_spot] = Some(-1);
+
+            possible_indexes.remove(possible_indexes.iter().position(|r| *r == bomb_spot).unwrap());
+        }
+
+        self.bombs_set = true;
+
     }
 
     pub fn is_bomb(self: &Self, row_index: usize, col_index: usize) -> bool{
@@ -77,6 +99,11 @@ impl MineField {
     pub fn reveal_square(self: &mut Self, row: usize, column: usize) {
 
         let index:usize = (row * self.columns) + column;
+
+
+        if !self.bombs_set {
+            self.place_bombs(index);
+        }
 
         if self.state[index] == None || self.state[index] == Some(-1){
             if self.state[index] != Some(-1) {
@@ -542,6 +569,15 @@ mod tests {
             }
         }
 
+    }
+
+    #[test]
+    fn test_new_minefield_has_no_bombs() {
+        let new_field = MineField::new(3, 3, 3);
+
+        for square in 0..new_field.area {
+            assert_eq!(new_field.state[square], None);
+        }
     }
 
 }
