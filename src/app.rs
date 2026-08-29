@@ -185,12 +185,6 @@ impl App {
     }
 
     pub fn reveal_spot(self: &mut Self, row: usize, column:usize) {
-        // TODO
-        // add trigger here for if a bomb
-        // is revealed for losing
-        // add trigger for win
-        // if all non bomb squares
-        // are found
 
 
         let mut field = self.field.clone().unwrap();

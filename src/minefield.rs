@@ -10,6 +10,8 @@ each square is either unknown, bomb, flag, or number
 
 use std::option::Option;
 
+use rand::seq::IteratorRandom;
+
 
 #[derive(Clone)]
 pub struct MineField {
@@ -20,6 +22,7 @@ pub struct MineField {
     revealed_spots: Vec<usize>,
     num_bombs: usize,
     area: usize,
+    bombs_set: bool
 }
 impl Default for MineField {
     fn default() -> Self {
@@ -30,7 +33,8 @@ impl Default for MineField {
             num_bombs: 0,
             area: 9,
             flagged_spots: vec![],
-            revealed_spots: vec![]
+            revealed_spots: vec![],
+            bombs_set: true,
         }
     }
 }
@@ -48,22 +52,40 @@ impl MineField {
             num_bombs: num_bombs,
             area: 1,
             flagged_spots: vec![],
-            revealed_spots: vec![]
+            revealed_spots: vec![],
+            bombs_set: false,
         };
 
         field.area = field.columns*field.rows;
 
         field.state = vec![None; field.area.into()];
 
-
-        // set the bomb indices
-        let bomb_spots = rand::seq::index::sample(&mut rand::rng(), field.area, field.num_bombs).into_vec();
-        for spot in bomb_spots {
-            field.state[spot] = Some(-1);
-        }
-
         field
         
+    }
+
+
+    fn place_bombs(self: &mut Self, revealed_index: usize) {
+        // instead of placing bombs to start
+        // place them after the user makes the first move
+
+        // get all possible bomb indicies
+        let mut possible_indexes: Vec<usize> = (0..self.area).into_iter().collect();
+
+        possible_indexes.remove(possible_indexes.iter().position(|r|*r == revealed_index).unwrap());
+
+        // randomly pick spots from the possible indexes
+        // then remove from the list of options
+        for _ in 0..self.num_bombs {
+            let bomb_spot = *possible_indexes.iter().choose(&mut rand::rng()).unwrap();
+
+            self.state[bomb_spot] = Some(-1);
+
+            possible_indexes.remove(possible_indexes.iter().position(|r| *r == bomb_spot).unwrap());
+        }
+
+        self.bombs_set = true;
+
     }
 
     pub fn is_bomb(self: &Self, row_index: usize, col_index: usize) -> bool{
@@ -78,17 +100,68 @@ impl MineField {
 
         let index:usize = (row * self.columns) + column;
 
+
+        if !self.bombs_set {
+            self.place_bombs(index);
+        }
+
         if self.state[index] == None || self.state[index] == Some(-1){
             if self.state[index] != Some(-1) {
                 self.state[index] = Some(self.check_neighbors(row, column));
             }
 
             self.revealed_spots.push(index);
+
+            // recursion for reavaling all
+            // spots with neighboring 
+            // this spot which has no bombs
+            if self.state[index] == Some(0) {
+
+                for neighbor in self.get_neighbors(row, column) {
+
+                    self.reveal_square_index(neighbor);
+
+                }
+
+                
+            }
         }
 
         // unflag the square when revealed
         if self.is_flagged(row, column) {
             self.unflag_square(row, column);
+        }
+
+    }
+
+    fn reveal_square_index(self: &mut Self, index:usize) {
+        // helper function to do recursive reveal
+
+        if self.state[index] == None || self.state[index] == Some(-1){
+            if self.state[index] != Some(-1) {
+                self.state[index] = Some(self.check_neighbors_index(index));
+            }
+
+            self.revealed_spots.push(index);
+
+            // recursion for reavaling all
+            // spots with no neighboring bombs
+            if self.state[index] == Some(0) {
+
+                for neighbor in self.get_neighbors_index(index) {
+
+                    self.reveal_square_index(neighbor);
+
+                }
+
+                
+            }
+
+            // unflag the square when revealed
+            if self.flagged_spots.contains(&index) {
+                let index_of_index = self.flagged_spots.iter().position(|r| *r == index).unwrap();
+                self.flagged_spots.remove(index_of_index);
+            }  
         }
 
     }
@@ -131,12 +204,7 @@ impl MineField {
         self.flagged_spots.contains(&index)
     }
 
-    fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {
-        
-        let square_index: usize = (row_index*self.columns) + col_index;
-
-        let mut neighbors = vec![];
-        
+    fn get_neighbors_index(self: &Self, square_index:usize) -> Vec<usize> {
         // neighbor edge cases
         // are border cells
         // remove the invalid elements
@@ -146,6 +214,8 @@ impl MineField {
 
         let left_border: Vec<usize> = (0..(self.area - self.columns+1)).step_by(self.columns).collect();
         let right_border: Vec<usize> = ((self.columns-1)..(self.area)).step_by(self.columns).collect();
+
+        let mut neighbors = vec![];
         
         if top_border.contains(&square_index){
             if left_border.contains(&square_index) {
@@ -215,7 +285,13 @@ impl MineField {
         }
 
         neighbors
+    }
 
+    fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {
+        
+        let square_index: usize = (row_index*self.columns) + col_index;
+
+        self.get_neighbors_index(square_index)
 
     }
 
@@ -237,6 +313,21 @@ impl MineField {
 
         count
             
+    }
+
+    fn check_neighbors_index(self: &Self, index: usize) -> i8 {
+        let neighbors = self.get_neighbors_index(index);
+
+        let mut count = 0;
+
+        for neighbor in neighbors {
+            let neighbor_val = self.state[neighbor];
+            if neighbor_val == Some(-1){
+                count += 1;
+            }
+        }
+
+        count
     }
 
     pub fn num_revealed_spots(self: &Self) -> usize {
@@ -542,6 +633,15 @@ mod tests {
             }
         }
 
+    }
+
+    #[test]
+    fn test_new_minefield_has_no_bombs() {
+        let new_field = MineField::new(3, 3, 3);
+
+        for square in 0..new_field.area {
+            assert_eq!(new_field.state[square], None);
+        }
     }
 
 }
