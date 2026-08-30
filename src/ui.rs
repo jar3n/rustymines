@@ -7,6 +7,9 @@ use crate::app::{
     DifficultyLevel
 };
 
+use crate::boardui;
+use crate::minefield::MineField;
+
 use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
@@ -232,54 +235,87 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
 
     // render the board in the top
     // temporary just render one tile
-    let board = Canvas::default()
-                                        .x_bounds([0.0, rows as f64])
-                                        .y_bounds([0.0, columns as f64])
-                                        .marker(ratatui::symbols::Marker::Quadrant)
-                                        .paint(|ctx| {
-                                            for row in 0..rows {
-                                                for column in 0..columns {
-                                                    let tile_state = app.field().is_bomb(row, column);
-                                                    let is_selected = column == app.selected_tile()[0] && row == app.selected_tile()[1];
-                                                    let is_flagged = app.field().is_flagged(row, column);
-                                                    let is_revealed = app.field().is_revealed(row, column);
+    // let board = Canvas::default()
+    //                                     .x_bounds([0.0, rows as f64])
+    //                                     .y_bounds([0.0, columns as f64])
+    //                                     .marker(ratatui::symbols::Marker::Quadrant)
+    //                                     .paint(|ctx| {
+    //                                         for row in 0..rows {
+    //                                             for column in 0..columns {
+    //                                                 let tile_state = app.field().is_bomb(row, column);
+    //                                                 let is_selected = column == app.selected_tile()[0] && row == app.selected_tile()[1];
+    //                                                 let is_flagged = app.field().is_flagged(row, column);
+    //                                                 let is_revealed = app.field().is_revealed(row, column);
 
-                                                    let num_neighbors = match tile_state {
-                                                        true => -1,
-                                                        false => app.field().check_neighbors(row,column)
-                                                    };
+    //                                                 let num_neighbors = match tile_state {
+    //                                                     true => -1,
+    //                                                     false => app.field().check_neighbors(row,column)
+    //                                                 };
 
-                                                    let tile = tile(
-                                                        columns as f64,
-                                                        rows as f64,
-                                                        column as f64,
-                                                        row as f64,
-                                                        is_revealed, 
-                                                        is_selected && !(app.has_lost() || app.has_won()),
-                                                        is_flagged,
-                                                        num_neighbors
-                                                    );
+    //                                                 let tile = tile(
+    //                                                     columns as f64,
+    //                                                     rows as f64,
+    //                                                     column as f64,
+    //                                                     row as f64,
+    //                                                     is_revealed, 
+    //                                                     is_selected && !(app.has_lost() || app.has_won()),
+    //                                                     is_flagged,
+    //                                                     num_neighbors
+    //                                                 );
 
-                                                    ctx.draw(&tile);
+    //                                                 ctx.draw(&tile);
 
-                                                    if is_revealed && !app.field().is_bomb(row, column){
-                                                        let tile_type_str = format!("{}", num_neighbors);
+    //                                                 if is_revealed && !app.field().is_bomb(row, column){
+    //                                                     let tile_type_str = format!("{}", num_neighbors);
 
-                                                        ctx.print(column as f64 + tile.width/2.0, row as f64, tile_type_str);
-                                                    }
+    //                                                     ctx.print(column as f64 + tile.width/2.0, row as f64, tile_type_str);
+    //                                                 }
                                                     
-                                                }
-                                            }
+    //                                             }
+    //                                         }
                                             
                                             
-                                        })
-                                        .block(Block::new()
-                                                .borders(Borders::TOP | Borders::BOTTOM)
-                                                .border_type(BorderType::Rounded)
-                                                .green()
-                                                );
+    //                                     })
+    //                                     .block(Block::new()
+    //                                             .borders(Borders::TOP | Borders::BOTTOM)
+    //                                             .border_type(BorderType::Rounded)
+    //                                             .green()
+    //                                             );
 
-    frame.render_widget(board, board_layout[1]);
+    let board_vertical_layout = Layout::new(
+                                                Direction::Vertical, 
+                                                vec![
+                                                    Constraint::Percentage(10),
+                                                    Constraint::Fill(1),
+                                                    Constraint::Percentage(10)
+                                                ]
+                                                ).split(board_layout[1]);
+    
+    let board_horizontal_layout = Layout::new(
+                                                Direction::Horizontal, 
+                                                vec![
+                                                    Constraint::Percentage(10),
+                                                    Constraint::Fill(1),
+                                                    Constraint::Percentage(10)
+                                                ]
+                                                ).split(board_vertical_layout[1]);
+    
+
+    let board_top = Block::new()
+                                    .borders(Borders::TOP)
+                                    .green();
+    
+    let board_bottom = Block::new()
+                                    .borders(Borders::BOTTOM)
+                                    .green();
+    frame.render_widget(board_top, board_vertical_layout[0]);
+    frame.render_widget(board_bottom, board_vertical_layout[2]);
+
+
+
+    let board = app.field();
+
+    frame.render_widget(board, board_horizontal_layout[1]);
 
     frame.render_widget(Block::new()
                                         .green()
