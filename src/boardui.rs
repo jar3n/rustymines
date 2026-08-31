@@ -11,25 +11,24 @@ because its ui stuff
 */
 
 use ratatui::{
-    layout::{
-        Layout,
-        Rect,
-        Constraint,
+    buffer::Buffer, layout::{
+        Constraint, Layout, Rect,
+    }, style::{
+        Color::{
+            Blue, Green, LightMagenta, Yellow, White
+        }, Stylize
+    }, widgets::{
+        Block, Paragraph, Widget,
     },
-    widgets::{
-        Widget,
-        Paragraph,
-        Block,
-    },
-    buffer::Buffer,
+
 };
 
 use crate::minefield::MineField;
 
 
+
 impl Widget for MineField {
     fn render(self, area: Rect, buf: &mut Buffer) {
-
 
         let col_constraints = (0..self.columns()).map(|_| Constraint::Length(9));
         let row_constraints = (0..self.rows()).map(|_| Constraint::Length(3));
@@ -40,11 +39,52 @@ impl Widget for MineField {
         let cells = rows.iter().flat_map(|&row| horizontal.split(row).to_vec());
 
         for (i, cell) in cells.enumerate() {
-            Paragraph::new(format!("Area {:02}", i + 1))
-                .block(Block::bordered())
-                .render(cell, buf);
-        }
 
+            if i == self.selected_square() {
+                if self.is_revealed_index(i) {
+                    let num_bomb_neighbors = self.check_neighbors_index(i);
+                    Paragraph::new(format!("{}", num_bomb_neighbors))
+                                .block(Block::bordered())
+                                .bg(Green)
+                                .fg(Green)
+                                .render(cell, buf);
+                } else  {
+                    Paragraph::new("")
+                                .block(Block::bordered())
+                                .bg(Green)
+                                .fg(Green)
+                                .render(cell, buf);
+                } 
+                
+            } else if self.is_revealed_index(i){
+                 let num_bomb_neighbors = self.check_neighbors_index(i);
+                    Paragraph::new(format!("{}", num_bomb_neighbors))
+                                .block(Block::bordered())
+                                .bg(if num_bomb_neighbors == 0 {
+                                    Blue
+                                } else {
+                                    Yellow
+                                })
+                                .fg(if num_bomb_neighbors == 0 {
+                                    Blue
+                                } else {
+                                    Yellow
+                                })
+                                .render(cell, buf);
+            } else if self.is_flagged_index(1) {
+                 Paragraph::new("")
+                                .block(Block::bordered())
+                                .bg(LightMagenta)
+                                .fg(LightMagenta)
+                                .render(cell, buf);
+            } else {
+                Paragraph::new("")
+                                .block(Block::bordered())
+                                .bg(White)
+                                .fg(White)
+                                .render(cell, buf);
+            }
+        }
     }
 }
 

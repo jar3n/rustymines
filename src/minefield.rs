@@ -22,7 +22,8 @@ pub struct MineField {
     revealed_spots: Vec<usize>,
     num_bombs: usize,
     area: usize,
-    bombs_set: bool
+    bombs_set: bool,
+    selected_spot: usize
 }
 impl Default for MineField {
     fn default() -> Self {
@@ -35,6 +36,7 @@ impl Default for MineField {
             flagged_spots: vec![],
             revealed_spots: vec![],
             bombs_set: true,
+            selected_spot: 0,
         }
     }
 }
@@ -54,6 +56,7 @@ impl MineField {
             flagged_spots: vec![],
             revealed_spots: vec![],
             bombs_set: false,
+            selected_spot: 0,
         };
 
         field.area = field.columns*field.rows;
@@ -96,9 +99,36 @@ impl MineField {
         self.state[index] == Some(-1)
     }
 
-    pub fn reveal_square(self: &mut Self, row: usize, column: usize) {
+    pub fn is_selected_bomb(self: &Self) -> bool {
+        self.state[self.selected_spot] == Some(-1)
+    }
 
-        let index:usize = (row * self.columns) + column;
+    pub fn update_selected_spot(self: &mut Self, row_delta: isize, column_delta: isize) {
+
+
+        // the deltas are either -1, 0, 1
+
+        let rows = self.rows as isize;
+        let area = self.area as isize;
+        let curr_spot = self.selected_spot as isize;
+
+        if let Some(new_spot) = curr_spot.checked_add(row_delta*rows) && 
+                                                            new_spot < area {
+            if let Some(new_spot) = new_spot.checked_add(column_delta) && new_spot < area {
+                if new_spot > -1 {
+                    self.selected_spot = new_spot as usize;
+                }
+            }
+        }
+    }
+
+    pub fn selected_square(self: &Self) -> usize {
+        self.selected_spot
+    }
+
+    pub fn reveal_square(self: &mut Self) {
+
+        let index:usize = self.selected_spot;
 
 
         if !self.bombs_set {
@@ -107,7 +137,7 @@ impl MineField {
 
         if self.state[index] == None || self.state[index] == Some(-1){
             if self.state[index] != Some(-1) {
-                self.state[index] = Some(self.check_neighbors(row, column));
+                self.state[index] = Some(self.check_neighbors_index(index));
             }
 
             self.revealed_spots.push(index);
@@ -117,19 +147,16 @@ impl MineField {
             // this spot which has no bombs
             if self.state[index] == Some(0) {
 
-                for neighbor in self.get_neighbors(row, column) {
+                for neighbor in self.get_neighbors_index(index) {
 
                     self.reveal_square_index(neighbor);
-
                 }
-
-                
             }
         }
 
         // unflag the square when revealed
-        if self.is_flagged(row, column) {
-            self.unflag_square(row, column);
+        if self.is_flagged_index(index) {
+            self.unflag_square_index(index);
         }
 
     }
@@ -188,14 +215,29 @@ impl MineField {
         
     }
 
-    pub fn unflag_square(self: &mut Self, row: usize, column: usize){
+    pub fn flag_selected_square(self: &mut Self) {
+        if !self.flagged_spots.contains(&self.selected_spot) && !self.revealed_spots.contains(&self.selected_spot) {
+            self.flagged_spots.push(self.selected_spot);
+        }
+    }
+
+    pub fn unflag_square(self: &mut Self, row:usize, column: usize){
         let index:usize = (row * self.columns) + column;
+
+        self.unflag_square_index(index);
+    }
+
+    fn unflag_square_index(self: &mut Self, index: usize){
 
         if self.flagged_spots.contains(&index) {
             let index_of_index = self.flagged_spots.iter().position(|r| *r == index).unwrap();
 
             self.flagged_spots.remove(index_of_index);
         }
+    }
+
+    pub fn unflag_selected_square(self: &mut Self) {
+        self.unflag_square_index(self.selected_spot);
     }
 
     pub fn is_flagged(self: &Self, row: usize, column:usize) -> bool{
@@ -315,7 +357,7 @@ impl MineField {
             
     }
 
-    fn check_neighbors_index(self: &Self, index: usize) -> i8 {
+    pub fn check_neighbors_index(self: &Self, index: usize) -> i8 {
         let neighbors = self.get_neighbors_index(index);
 
         let mut count = 0;
@@ -338,14 +380,20 @@ impl MineField {
         self.area
     }
 
-
-
     pub fn rows(self: &Self) -> usize {
         self.rows
     }
 
     pub fn columns(self: &Self) -> usize {
         self.columns
+    }
+
+    pub fn is_revealed_index(self: &Self, index:usize) -> bool {
+        self.revealed_spots.contains(&index)
+    }
+
+    pub fn is_flagged_index(self: &Self, index: usize) -> bool {
+        self.flagged_spots.contains(&index)
     }
 }
 
