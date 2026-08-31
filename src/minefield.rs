@@ -22,7 +22,8 @@ pub struct MineField {
     revealed_spots: Vec<usize>,
     num_bombs: usize,
     area: usize,
-    bombs_set: bool
+    bombs_set: bool,
+    selected_spot: usize
 }
 impl Default for MineField {
     fn default() -> Self {
@@ -35,6 +36,7 @@ impl Default for MineField {
             flagged_spots: vec![],
             revealed_spots: vec![],
             bombs_set: true,
+            selected_spot: 0,
         }
     }
 }
@@ -54,6 +56,7 @@ impl MineField {
             flagged_spots: vec![],
             revealed_spots: vec![],
             bombs_set: false,
+            selected_spot: 0,
         };
 
         field.area = field.columns*field.rows;
@@ -63,7 +66,6 @@ impl MineField {
         field
         
     }
-
 
     fn place_bombs(self: &mut Self, revealed_index: usize) {
         // instead of placing bombs to start
@@ -96,9 +98,36 @@ impl MineField {
         self.state[index] == Some(-1)
     }
 
-    pub fn reveal_square(self: &mut Self, row: usize, column: usize) {
+    pub fn is_selected_bomb(self: &Self) -> bool {
+        self.state[self.selected_spot] == Some(-1)
+    }
 
-        let index:usize = (row * self.columns) + column;
+    pub fn update_selected_spot(self: &mut Self, row_delta: isize, column_delta: isize) {
+
+
+        // the deltas are either -1, 0, 1
+
+        let rows = self.rows as isize;
+        let area = self.area as isize;
+        let curr_spot = self.selected_spot as isize;
+
+        if let Some(new_spot) = curr_spot.checked_add(row_delta*rows) && 
+                                                            new_spot < area {
+            if let Some(new_spot) = new_spot.checked_add(column_delta) && new_spot < area {
+                if new_spot > -1 {
+                    self.selected_spot = new_spot as usize;
+                }
+            }
+        }
+    }
+
+    pub fn selected_square(self: &Self) -> usize {
+        self.selected_spot
+    }
+
+    pub fn reveal_square(self: &mut Self) {
+
+        let index:usize = self.selected_spot;
 
 
         if !self.bombs_set {
@@ -107,7 +136,7 @@ impl MineField {
 
         if self.state[index] == None || self.state[index] == Some(-1){
             if self.state[index] != Some(-1) {
-                self.state[index] = Some(self.check_neighbors(row, column));
+                self.state[index] = Some(self.check_neighbors_index(index));
             }
 
             self.revealed_spots.push(index);
@@ -117,19 +146,16 @@ impl MineField {
             // this spot which has no bombs
             if self.state[index] == Some(0) {
 
-                for neighbor in self.get_neighbors(row, column) {
+                for neighbor in self.get_neighbors_index(index) {
 
                     self.reveal_square_index(neighbor);
-
                 }
-
-                
             }
         }
 
         // unflag the square when revealed
-        if self.is_flagged(row, column) {
-            self.unflag_square(row, column);
+        if self.is_flagged_index(index) {
+            self.unflag_square_index(index);
         }
 
     }
@@ -170,26 +196,13 @@ impl MineField {
         self.num_bombs
     }
 
-
-    pub fn is_revealed(self: &Self, row: usize, column: usize) -> bool{
-        let index:usize = (row * self.columns) + column;
-
-        self.revealed_spots.contains(&index)
-
-    }
-
-
-    pub fn flag_square(self: &mut Self, row: usize, column: usize) {
-        let index:usize = (row * self.columns) + column;
-
-        if !self.flagged_spots.contains(&index) && !self.revealed_spots.contains(&index) {
-            self.flagged_spots.push(index);
+    pub fn flag_selected_square(self: &mut Self) {
+        if !self.flagged_spots.contains(&self.selected_spot) && !self.revealed_spots.contains(&self.selected_spot) {
+            self.flagged_spots.push(self.selected_spot);
         }
-        
     }
 
-    pub fn unflag_square(self: &mut Self, row: usize, column: usize){
-        let index:usize = (row * self.columns) + column;
+    fn unflag_square_index(self: &mut Self, index: usize){
 
         if self.flagged_spots.contains(&index) {
             let index_of_index = self.flagged_spots.iter().position(|r| *r == index).unwrap();
@@ -198,10 +211,12 @@ impl MineField {
         }
     }
 
-    pub fn is_flagged(self: &Self, row: usize, column:usize) -> bool{
-        let index:usize = (row * self.columns) + column;
+    pub fn unflag_selected_square(self: &mut Self) {
+        self.unflag_square_index(self.selected_spot);
+    }
 
-        self.flagged_spots.contains(&index)
+    pub fn is_selected_flagged(self: &mut Self) -> bool{
+        self.is_flagged_index(self.selected_spot)
     }
 
     fn get_neighbors_index(self: &Self, square_index:usize) -> Vec<usize> {
@@ -287,35 +302,8 @@ impl MineField {
         neighbors
     }
 
-    fn get_neighbors(self: &Self, row_index: usize, col_index: usize) -> Vec<usize> {
-        
-        let square_index: usize = (row_index*self.columns) + col_index;
 
-        self.get_neighbors_index(square_index)
-
-    }
-
-    pub fn check_neighbors(self: &Self, row_index: usize, col_index: usize) -> i8 {
-
-        // count the number of bombs adjacent to the current square
-
-
-        let neighbors = self.get_neighbors(row_index, col_index);
-
-        let mut count = 0;
-
-        for neighbor in neighbors {
-            let neighbor_val = self.state[neighbor];
-            if neighbor_val == Some(-1){
-                count += 1;
-            }
-        }
-
-        count
-            
-    }
-
-    fn check_neighbors_index(self: &Self, index: usize) -> i8 {
+    pub fn check_neighbors_index(self: &Self, index: usize) -> i8 {
         let neighbors = self.get_neighbors_index(index);
 
         let mut count = 0;
@@ -338,14 +326,20 @@ impl MineField {
         self.area
     }
 
-
-
     pub fn rows(self: &Self) -> usize {
         self.rows
     }
 
     pub fn columns(self: &Self) -> usize {
         self.columns
+    }
+
+    pub fn is_revealed_index(self: &Self, index:usize) -> bool {
+        self.revealed_spots.contains(&index)
+    }
+
+    pub fn is_flagged_index(self: &Self, index: usize) -> bool {
+        self.flagged_spots.contains(&index)
     }
 }
 
@@ -375,30 +369,6 @@ mod tests {
         println!("----------------------");
     }
 
-    struct TestNeighborIndexes {
-        center_index: (usize, usize),
-        corner_indexes: Vec<(usize,usize)>,
-        side_indexes: Vec<(usize,usize)>,
-    }
-    impl Default for TestNeighborIndexes {
-        fn default() -> Self {
-            Self {
-                center_index: (1,1),
-                corner_indexes:  vec![
-                    (0,0),
-                    (0,2),
-                    (2,0),
-                    (2,2)
-                ],
-                side_indexes: vec![
-                    (0,1),
-                    (1,0),
-                    (1,2),
-                    (2,1),
-                ],
-            }
-        }
-    }
 
     fn set_bomb_location(row:usize, column:usize) -> MineField {
         let mut field = MineField::default();
@@ -426,16 +396,10 @@ mod tests {
     fn test_get_neighbors_center() {
         let field = MineField::default();
 
-        // index with 8 neighbors
-        let coords = TestNeighborIndexes::default().center_index;
-        
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(4);
         let exp_neighbors: Vec<usize> = vec![0,1,2,3,5,6,7,8];
 
-
-        println!("Testing Center Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
 
@@ -447,13 +411,10 @@ mod tests {
     fn test_top_left_corner_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().corner_indexes[0];
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(0);
         let exp_neighbors: Vec<usize> = vec![1,3,4];
 
-        println!("Testing Top Left Corner Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -462,13 +423,10 @@ mod tests {
     fn test_top_right_corner_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().corner_indexes[1];
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(2);
         let exp_neighbors: Vec<usize> = vec![1,4,5];
 
-        println!("Testing Top Right Corner Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -477,13 +435,11 @@ mod tests {
     fn test_bottom_left_corner_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().corner_indexes[2];
 
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(6);
         let exp_neighbors: Vec<usize> = vec![3,4,7];
 
-        println!("Testing Bottom Left Corner Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -492,13 +448,10 @@ mod tests {
     fn test_bottom_right_corner_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().corner_indexes[3];
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(8);
         let exp_neighbors: Vec<usize> = vec![4,5,7];
 
-        println!("Testing Bottom Right Corner Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -507,13 +460,10 @@ mod tests {
     fn test_top_side_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().side_indexes[0];
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(1);
         let exp_neighbors: Vec<usize> = vec![0,2,3,4,5];
 
-        println!("Testing Top Side Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -522,13 +472,10 @@ mod tests {
     fn test_left_side_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().side_indexes[1];
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(3);
         let exp_neighbors: Vec<usize> = vec![0,1,4,6,7];
 
-        println!("Testing Right Side Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -537,13 +484,11 @@ mod tests {
     fn test_right_side_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().side_indexes[2];
 
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(5);
         let exp_neighbors: Vec<usize> = vec![1,2,4,7,8];
 
-        println!("Testing Right Side Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -552,13 +497,10 @@ mod tests {
     fn test_bottom_side_neighbors() {
         let field = MineField::default();
 
-        let coords = TestNeighborIndexes::default().side_indexes[3];
-
         // center index testing
-        let act_neighbors = field.get_neighbors(coords.0, coords.1);
+        let act_neighbors = field.get_neighbors_index(7);
         let exp_neighbors: Vec<usize> = vec![3,4,5,6,8];
 
-        println!("Testing Bottom Side Index, {:?}", coords);
         assert_neighbors(&act_neighbors, &exp_neighbors);
         print_separator();
     }
@@ -588,17 +530,14 @@ mod tests {
         // bomb in center means all non bomb squares
         // have one bomb neighbor
         // since default is 3x3
-        for row in 0..field.rows {
-            for column in 0..field.columns {
-                if row == 1 && column ==1 {
-                    continue;
-                }
-
-                let bomb_count = field.check_neighbors(row, column);
+        for spot in 0..field.area {
+            if spot == 4 {
+                // skip the check on the spot with the bomb
+                continue
+            }
+                let bomb_count = field.check_neighbors_index(spot);
                 
                 assert_eq!(bomb_count, 1);
-
-            }
         }
     }
 
@@ -608,29 +547,16 @@ mod tests {
 
         add_bomb_location(&mut field, 2, 1);
 
-
-        for row in 0..field.rows {
-            for column in 0..field.columns {
-                let coords: (usize, usize) = (row, column);
-
-                let two_bomb_neighbors: Vec<(usize, usize)> = vec![
-                    (1,0),
-                    (1,1),
-                    (1,2),
+        let two_bomb_neighbors: Vec<usize> = vec![
+                    3,
+                    4,
+                    5
                 ];
 
-                let bomb_count = field.check_neighbors(coords.0, coords.1);
+        for spot in two_bomb_neighbors {
+            let bomb_count = field.check_neighbors_index(spot);
+            assert_eq!(bomb_count,2);
 
-                if two_bomb_neighbors.contains(&coords) {
-                    assert_eq!(bomb_count,2);
-                } else if field.is_bomb(coords.0, coords.1){
-                    // ignore if its a bomb square
-                    continue;
-                } 
-                else {
-                    assert_eq!(bomb_count, 1);
-                }
-            }
         }
 
     }

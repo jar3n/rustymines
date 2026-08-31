@@ -11,7 +11,10 @@ use ratatui::{
     layout::{
         self, Constraint, Direction, Layout, Rect
     }, style::{
-        Color::{Green, LightBlue, LightMagenta, Red, White, Yellow}, Style, Stylize
+        Style, Stylize,
+        Color::{
+            Green
+        }
     }, text::Line, widgets::{
         Block, 
         BorderType, 
@@ -19,11 +22,6 @@ use ratatui::{
         List, 
         ListState, 
         Paragraph,
-        canvas::{
-            Canvas,
-            Rectangle,
-        }
-
     }
 };
 use strum::IntoEnumIterator;
@@ -177,43 +175,9 @@ pub fn render_start(frame: &mut ratatui::Frame, app: &App) {
 }
 
 
-fn tile(num_columns: f64, num_rows: f64, column: f64, row: f64, revealed: bool, is_selected: bool, is_flagged: bool, tiletype: i8) ->Rectangle {
-    // todo 
-    // add size adjustment 
-    // and translate row column coordinates
-    // to the center of the tile
-
-    Rectangle { 
-        x: column, 
-        y: row, 
-        width: 1.0/num_columns, 
-        height: 1.0/num_rows, 
-        color: if is_selected {
-            Green
-        } else if is_flagged {
-            LightMagenta
-        } else if revealed {
-            match tiletype {
-                -1 => Red,
-                0 => LightBlue,
-                _ => Yellow,
-            }
-        } else {
-            White
-        }
-    }
-}
-
 // render in game menu
 pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let base = base_layout(frame);
-
-    // todo
-    // figure out why the curser
-    // title is not changing 
-    // when i press the buttons
-    // might be because 
-    // it does not have state??
 
     let board_layout = Layout::default()
                                         .direction(Direction::Horizontal)
@@ -230,56 +194,46 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let rows = app.field().rows();
     let columns = app.field().columns();
 
-    // render the board in the top
-    // temporary just render one tile
-    let board = Canvas::default()
-                                        .x_bounds([0.0, rows as f64])
-                                        .y_bounds([0.0, columns as f64])
-                                        .marker(ratatui::symbols::Marker::Quadrant)
-                                        .paint(|ctx| {
-                                            for row in 0..rows {
-                                                for column in 0..columns {
-                                                    let tile_state = app.field().is_bomb(row, column);
-                                                    let is_selected = column == app.selected_tile()[0] && row == app.selected_tile()[1];
-                                                    let is_flagged = app.field().is_flagged(row, column);
-                                                    let is_revealed = app.field().is_revealed(row, column);
+    // have two nested layouts to center the board
+    // in the center of the top portion
+    let board_vertical_layout = Layout::new(
+                                                Direction::Vertical, 
+                                                vec![
+                                                    Constraint::Fill(1),
+                                                    Constraint::Fill(10),
+                                                    Constraint::Fill(1)
+                                                ]
+                                                ).split(board_layout[1]);
+    
+    let board_horizontal_layout = Layout::new(
+                                                Direction::Horizontal, 
+                                                vec![
+                                                    Constraint::Fill(1),
+                                                    Constraint::Fill(10),
+                                                    Constraint::Fill(1)
+                                                ]
+                                                ).split(board_vertical_layout[1]);
+    
 
-                                                    let num_neighbors = match tile_state {
-                                                        true => -1,
-                                                        false => app.field().check_neighbors(row,column)
-                                                    };
+    let board_top = Block::new()
+                                    .borders(Borders::TOP)
+                                    .green();
+    
+    let board_bottom = Block::new()
+                                    .borders(Borders::BOTTOM)
+                                    .green();
+    
 
-                                                    let tile = tile(
-                                                        columns as f64,
-                                                        rows as f64,
-                                                        column as f64,
-                                                        row as f64,
-                                                        is_revealed, 
-                                                        is_selected && !(app.has_lost() || app.has_won()),
-                                                        is_flagged,
-                                                        num_neighbors
-                                                    );
+    frame.render_widget(board_top, board_vertical_layout[0]);
+    frame.render_widget(board_bottom, board_vertical_layout[2]);
 
-                                                    ctx.draw(&tile);
 
-                                                    if is_revealed && !app.field().is_bomb(row, column){
-                                                        let tile_type_str = format!("{}", num_neighbors);
+    // use the widget trait 
+    // of the minefield
+    // to render it
+    let board = app.field();
 
-                                                        ctx.print(column as f64 + tile.width/2.0, row as f64, tile_type_str);
-                                                    }
-                                                    
-                                                }
-                                            }
-                                            
-                                            
-                                        })
-                                        .block(Block::new()
-                                                .borders(Borders::TOP | Borders::BOTTOM)
-                                                .border_type(BorderType::Rounded)
-                                                .green()
-                                                );
-
-    frame.render_widget(board, board_layout[1]);
+    frame.render_widget(board, board_horizontal_layout[1]);
 
     frame.render_widget(Block::new()
                                         .green()
