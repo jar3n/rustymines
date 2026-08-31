@@ -80,7 +80,7 @@ impl Widget for MineField {
                                     Yellow
                                 })
                                 .render(cell, buf);
-            } else if self.is_flagged_index(1) {
+            } else if self.is_flagged_index(i) {
                  Paragraph::new("")
                                 .block(Block::bordered())
                                 .bg(LightMagenta)
