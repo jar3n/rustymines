@@ -30,8 +30,8 @@ use crate::minefield::MineField;
 impl Widget for MineField {
     fn render(self, area: Rect, buf: &mut Buffer) {
 
-        let col_constraints = (0..self.columns()).map(|_| Constraint::Length(9));
-        let row_constraints = (0..self.rows()).map(|_| Constraint::Length(3));
+        let col_constraints = (0..self.columns()).map(|_| Constraint::Fill(1));
+        let row_constraints = (0..self.rows()).map(|_| Constraint::Fill(1));
         let horizontal = Layout::horizontal(col_constraints).spacing(1);
         let vertical = Layout::vertical(row_constraints).spacing(1);
 
