@@ -169,7 +169,10 @@ impl App {
     pub fn flag_spot(self: &mut Self) {
         let mut field = self.field();
 
-        field.flag_selected_square();
+        match field.is_selected_flagged() {
+            true => field.unflag_selected_square(),
+            false => field.flag_selected_square()
+        }
 
         self.field = Some(field);
     }

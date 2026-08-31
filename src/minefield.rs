@@ -246,6 +246,10 @@ impl MineField {
         self.flagged_spots.contains(&index)
     }
 
+    pub fn is_selected_flagged(self: &mut Self) -> bool{
+        self.is_flagged_index(self.selected_spot)
+    }
+
     fn get_neighbors_index(self: &Self, square_index:usize) -> Vec<usize> {
         // neighbor edge cases
         // are border cells
