@@ -15,7 +15,7 @@ use ratatui::{
         Constraint, Layout, Rect,
     }, style::{
         Color::{
-            Blue, Green, LightMagenta, Yellow, White
+            Blue, Green, LightMagenta, Yellow, White, Red
         }, Stylize
     }, widgets::{
         Block, Paragraph, Widget,
@@ -42,12 +42,21 @@ impl Widget for MineField {
 
             if i == self.selected_square() {
                 if self.is_revealed_index(i) {
-                    let num_bomb_neighbors = self.check_neighbors_index(i);
-                    Paragraph::new(format!("{}", num_bomb_neighbors))
+                    if self.is_selected_bomb() {
+                        Paragraph::new("")
+                                    .block(Block::bordered())
+                                    .bg(Red)
+                                    .fg(Red)
+                                    .render(cell, buf);
+                    } else {
+                        let num_bomb_neighbors = self.check_neighbors_index(i);
+                        Paragraph::new(format!("{}", num_bomb_neighbors))
                                 .block(Block::bordered())
                                 .bg(Green)
                                 .fg(Green)
                                 .render(cell, buf);
+                    }
+                    
                 } else  {
                     Paragraph::new("")
                                 .block(Block::bordered())
