@@ -199,18 +199,18 @@ pub fn render_game(frame: &mut ratatui::Frame, app: &App) {
     let board_vertical_layout = Layout::new(
                                                 Direction::Vertical, 
                                                 vec![
-                                                    Constraint::Percentage(5),
                                                     Constraint::Fill(1),
-                                                    Constraint::Percentage(5)
+                                                    Constraint::Fill(10),
+                                                    Constraint::Fill(1)
                                                 ]
                                                 ).split(board_layout[1]);
     
     let board_horizontal_layout = Layout::new(
                                                 Direction::Horizontal, 
                                                 vec![
-                                                    Constraint::Percentage(10),
                                                     Constraint::Fill(1),
-                                                    Constraint::Percentage(10)
+                                                    Constraint::Fill(10),
+                                                    Constraint::Fill(1)
                                                 ]
                                                 ).split(board_vertical_layout[1]);
     

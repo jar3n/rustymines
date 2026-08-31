@@ -13,17 +13,72 @@ because its ui stuff
 use ratatui::{
     buffer::Buffer, layout::{
         Constraint, Layout, Rect,
-    }, style::{
+    }, 
+    style::{
         Color::{
-            Blue, Green, LightMagenta, Yellow, White, Red, Black
-        }, Stylize
-    }, widgets::{
+            Black, 
+            Blue, 
+            Green, 
+            LightMagenta, 
+            Red, 
+            White, 
+            Yellow
+        }, 
+        Style,
+    },  
+    widgets::{
         Block, Paragraph, Widget,
     },
 
 };
 
 use crate::minefield::MineField;
+
+impl MineField {
+    fn cell_style(self: &Self, index: usize) -> Style {
+        let mut style = Style::new();
+
+        if self.selected_square() == index {
+            if self.is_revealed_index(index) {
+                if self.is_selected_bomb() {
+                    style = style.fg(Red);
+                    style = style.bg(Red);
+                } else {
+                    style = style.fg(Black);
+                    style = style.bg(Green);
+                }
+
+            } else {
+                style = style.fg(Green);
+                style = style.bg(Green);
+            }
+
+        } else if self.is_revealed_index(index) {
+            let num_bomb_neighbors = self.check_neighbors_index(index);
+
+            if num_bomb_neighbors == 0 {
+                style = style.fg(Blue);
+                style = style.bg(Blue)
+            } else {
+                style = style.fg(Black);
+                style = style.bg(Yellow);
+            }
+
+        } else if self.is_flagged_index(index) {
+            style = style.fg(LightMagenta);
+            style = style.bg(LightMagenta);
+
+        } else {
+            style = style.fg(White);
+            style = style.bg(White);
+        }
+
+
+        style
+    }
+}
+
+
 
 
 
@@ -40,65 +95,34 @@ impl Widget for MineField {
 
         for (i, cell) in cells.enumerate() {
 
-            if i == self.selected_square() {
-                if self.is_revealed_index(i) {
-                    if self.is_selected_bomb() {
-                        Paragraph::new("")
-                                    .block(Block::default())
-                                    .bg(Red)
-                                    .fg(Red)
-                                    .centered()
-                                    .render(cell, buf);
-                    } else {
-                        let num_bomb_neighbors = self.check_neighbors_index(i);
-                        Paragraph::new(format!("{}", num_bomb_neighbors))
-                                .block(Block::default())
-                                .bg(Green)
-                                .fg(Black)
-                                .centered()
-                                .render(cell, buf);
-                    }
-                    
-                } else  {
-                    Paragraph::new("")
-                                .block(Block::bordered())
-                                .bg(Green)
-                                .fg(Black)
-                                .centered()
-                                .render(cell, buf);
-                } 
-                
-            } else if self.is_revealed_index(i){
-                 let num_bomb_neighbors = self.check_neighbors_index(i);
-                    Paragraph::new(format!("{}", num_bomb_neighbors))
-                                .block(Block::default())
-                                .bg(if num_bomb_neighbors == 0 {
-                                    Blue
-                                } else {
-                                    Yellow
-                                })
-                                .fg(if num_bomb_neighbors == 0 {
-                                    White
-                                } else {
-                                    Black
-                                })
-                                .centered()
-                                .render(cell, buf);
-            } else if self.is_flagged_index(i) {
-                 Paragraph::new("")
-                                .block(Block::default())
-                                .bg(LightMagenta)
-                                .fg(LightMagenta)
-                                .centered()
-                                .render(cell, buf);
+            let cell_layout = Layout::default()
+                                        .direction(ratatui::layout::Direction::Vertical)
+                                        .constraints(
+                                            vec![
+                                                Constraint::Percentage(20),
+                                                Constraint::Fill(1),
+                                                Constraint::Percentage(10)
+                                            ]
+                                        ).split(cell);
+            
+            let cell_style = self.cell_style(i);
+
+            // render the top and bottom empty portions as solid blocks 
+            // with teh matching style of the cell
+            Block::new().style(cell_style).render(cell_layout[0], buf);
+            Block::new().style(cell_style).render(cell_layout[2], buf);
+
+            let cell_text = if self.check_neighbors_index(i) != 0 && self.is_revealed_index(i){
+                format!("{}", self.check_neighbors_index(i))
             } else {
-                Paragraph::new("")
-                                .block(Block::default())
-                                .bg(White)
-                                .fg(White)
-                                .centered()
-                                .render(cell, buf);
-            }
+                "".to_owned()
+            };
+
+            Paragraph::new(cell_text)
+                        .style(cell_style)
+                        .centered()
+                        .render(cell_layout[1], buf);
+
         }
     }
 }
