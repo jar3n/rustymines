@@ -15,7 +15,7 @@ use ratatui::{
         Constraint, Layout, Rect,
     }, style::{
         Color::{
-            Blue, Green, LightMagenta, Yellow, White, Red
+            Blue, Green, LightMagenta, Yellow, White, Red, Black
         }, Stylize
     }, widgets::{
         Block, Paragraph, Widget,
@@ -44,16 +44,18 @@ impl Widget for MineField {
                 if self.is_revealed_index(i) {
                     if self.is_selected_bomb() {
                         Paragraph::new("")
-                                    .block(Block::bordered())
+                                    .block(Block::default())
                                     .bg(Red)
                                     .fg(Red)
+                                    .centered()
                                     .render(cell, buf);
                     } else {
                         let num_bomb_neighbors = self.check_neighbors_index(i);
                         Paragraph::new(format!("{}", num_bomb_neighbors))
-                                .block(Block::bordered())
+                                .block(Block::default())
                                 .bg(Green)
-                                .fg(Green)
+                                .fg(Black)
+                                .centered()
                                 .render(cell, buf);
                     }
                     
@@ -61,36 +63,40 @@ impl Widget for MineField {
                     Paragraph::new("")
                                 .block(Block::bordered())
                                 .bg(Green)
-                                .fg(Green)
+                                .fg(Black)
+                                .centered()
                                 .render(cell, buf);
                 } 
                 
             } else if self.is_revealed_index(i){
                  let num_bomb_neighbors = self.check_neighbors_index(i);
                     Paragraph::new(format!("{}", num_bomb_neighbors))
-                                .block(Block::bordered())
+                                .block(Block::default())
                                 .bg(if num_bomb_neighbors == 0 {
                                     Blue
                                 } else {
                                     Yellow
                                 })
                                 .fg(if num_bomb_neighbors == 0 {
-                                    Blue
+                                    White
                                 } else {
-                                    Yellow
+                                    Black
                                 })
+                                .centered()
                                 .render(cell, buf);
             } else if self.is_flagged_index(i) {
                  Paragraph::new("")
-                                .block(Block::bordered())
+                                .block(Block::default())
                                 .bg(LightMagenta)
                                 .fg(LightMagenta)
+                                .centered()
                                 .render(cell, buf);
             } else {
                 Paragraph::new("")
-                                .block(Block::bordered())
+                                .block(Block::default())
                                 .bg(White)
                                 .fg(White)
+                                .centered()
                                 .render(cell, buf);
             }
         }
