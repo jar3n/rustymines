@@ -67,7 +67,6 @@ impl MineField {
         
     }
 
-
     fn place_bombs(self: &mut Self, revealed_index: usize) {
         // instead of placing bombs to start
         // place them after the user makes the first move
@@ -197,14 +196,12 @@ impl MineField {
         self.num_bombs
     }
 
-
     pub fn is_revealed(self: &Self, row: usize, column: usize) -> bool{
         let index:usize = (row * self.columns) + column;
 
         self.revealed_spots.contains(&index)
 
     }
-
 
     pub fn flag_square(self: &mut Self, row: usize, column: usize) {
         let index:usize = (row * self.columns) + column;
